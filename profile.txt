@@ -6,9 +6,9 @@
 
 name=Luana Essig
 
-title1=Student MMI (2025-2026)
+title1= Student Number: 324125
 
-title2= 
+title2= M.Sc. Marketing Intelligence 
 
 expertise=Marketing 
 
