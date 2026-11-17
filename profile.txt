@@ -15,7 +15,7 @@ expertise=Marketing
 education=M.Sc. Marketing Intelligence, Pforzheim University 
 
 email=essiglua@hs-pforzheim.de
-linkedin=www.linkedin.com/in/luanaessig
+linkedin=https://www.linkedin.com/in/luanaessig
 
 about1=Luana earned her B.Sc. in Media Management and Advertising psychology from Pforzheim University,
 about2=and her M.Sc. in Marketing Intelligence in 2027 also from the University of Pforzheim.
