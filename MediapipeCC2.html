@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particle Magic – MediaPipe Hands</title>
+<style>
+  :root { --bg:#06070d; --panel:rgba(14,18,30,.82); --text:#e8ecf1; --muted:#8b95a7; --a:#5eead4; --b:#818cf8; --c:#e879f9; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+  #fx { position:fixed; inset:0; width:100%; height:100%; display:block; }
+
+  header { position:fixed; top:18px; left:0; right:0; text-align:center; pointer-events:none; }
+  header h1 { margin:0; font-size:clamp(1.6rem,3.6vw,3rem); font-weight:800; letter-spacing:.18em;
+    background:linear-gradient(90deg,var(--a),var(--b),var(--c),var(--a)); background-size:300% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent; animation:shine 8s linear infinite;
+    filter:drop-shadow(0 0 18px rgba(129,140,248,.35)); }
+  header p { margin:6px 0 0; color:var(--muted); font-size:.95rem; letter-spacing:.04em; }
+  @keyframes shine { to { background-position:300% 0; } }
+
+  .panel { position:fixed; left:18px; bottom:18px; width:340px; background:var(--panel); border:1px solid rgba(129,140,248,.25);
+    border-radius:16px; padding:16px 18px; backdrop-filter:blur(10px); font-size:.92rem; box-shadow:0 10px 40px rgba(0,0,0,.4); }
+  .clock { font-size:1.7rem; font-weight:800; color:var(--a); font-variant-numeric:tabular-nums; }
+  .date { color:#a5b4fc; margin:2px 0 12px; }
+  .line { margin:7px 0 3px; display:flex; justify-content:space-between; gap:8px; }
+  .line b { color:#fde68a; font-weight:700; }
+  .bar { height:7px; background:#1f2537; border-radius:4px; overflow:hidden; }
+  .bar div { height:100%; width:0; background:linear-gradient(90deg,var(--a),var(--b)); transition:width .12s; }
+  .hint { margin-top:12px; color:var(--muted); font-size:.8rem; line-height:1.55; }
+  .hint kbd { background:#1f2537; border:1px solid #333c55; border-radius:4px; padding:0 5px; font-family:inherit; color:var(--text); }
+  .swatch { display:inline-block; width:44px; height:10px; border-radius:5px; vertical-align:middle; margin-left:6px; }
+
+  .cam { position:fixed; right:18px; bottom:18px; width:260px; aspect-ratio:4/3; border-radius:14px; overflow:hidden;
+    border:2px solid rgba(94,234,212,.55); box-shadow:0 0 30px rgba(94,234,212,.25); background:#000; }
+  .cam video, .cam canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+  .cam.hidden { display:none; }
+
+  .toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.9); font-size:clamp(1.4rem,3vw,2.4rem);
+    font-weight:800; letter-spacing:.12em; opacity:0; pointer-events:none; transition:opacity .35s, transform .35s; text-shadow:0 0 24px currentColor; }
+  .toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+
+  .start { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    background:rgba(6,7,13,.82); text-align:center; padding:24px; z-index:5; }
+  .start p { color:var(--muted); max-width:520px; line-height:1.6; margin:0; }
+  .start button { background:linear-gradient(90deg,var(--a),var(--b)); color:#06070d; border:0; border-radius:999px; padding:12px 28px;
+    font-size:1.05rem; font-weight:700; cursor:pointer; }
+  .start button:disabled { opacity:.5; cursor:default; }
+  .err { color:#ff7b72 !important; }
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<header>
+  <h1>PARTICLE MAGIC</h1>
+  <p>MediaPipe Hand Landmarker · control thousands of particles with your hands</p>
+</header>
+
+<div class="panel">
+  <div class="clock" id="clock">--:--:--</div>
+  <div class="date" id="date">----</div>
+  <div class="line"><span>Right hand</span><b id="rState">not detected</b></div>
+  <div class="line"><span>Left hand</span><b id="lState">not detected</b></div>
+  <div class="line"><span>Openness</span><b id="openTxt">–</b></div>
+  <div class="bar"><div id="openBar"></div></div>
+  <div class="line"><span>Distance to screen</span><b id="distTxt">–</b></div>
+  <div class="bar"><div id="distBar"></div></div>
+  <div class="line"><span>Shape <b id="shapeTxt">Heart</b></span><span>Color <b id="colorTxt">Gold</b><i class="swatch" id="swatch"></i></span></div>
+  <div class="hint">
+    ✊ → 🖐 Fist → open: new shape &amp; color · 🖐 Open hand: particles bloom<br>
+    🤏 Thumb + index finger: particles follow your finger · ✌️ Peace: fireworks<br>
+    🙌 Two hands: distance = size · left hand left/right = rotation · closer = smaller<br>
+    <kbd>Space</kbd> shape · <kbd>F</kbd> color · <kbd>C</kbd> camera preview on/off
+  </div>
+</div>
+
+<div class="cam" id="cam">
+  <video id="video" playsinline muted></video>
+  <canvas id="camOverlay"></canvas>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="start" id="start">
+  <h2 style="margin:0">Particle Magic</h2>
+  <p id="startText">Loading AI model …</p>
+  <button id="startBtn" disabled>Start camera</button>
+  <p style="font-size:.85rem">The camera image is processed only in your browser and never uploaded. Press <b>C</b> to hide the preview.</p>
+</div>
+
+<script type="module">
+const VERSION = "1.2.3";
+const CDN = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}`;
+const MODEL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task";
+
+const $ = id => document.getElementById(id);
+const fx = $("fx"), g = fx.getContext("2d");
+const video = $("video"), camC = $("camOverlay"), cg = camC.getContext("2d");
+
+// ======================================================= clock
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function tickClock() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  $("clock").textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  $("date").textContent = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} · ${DAYS[d.getDay()]}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+// ======================================================= palettes
+const PALETTES = [
+  { name: "Gold",      c: ["#fff3b0", "#ffd166", "#ff9f1c", "#f77f00"] },
+  { name: "Aurora",    c: ["#5eead4", "#22d3ee", "#818cf8", "#a3e635"] },
+  { name: "Neon",      c: ["#f0abfc", "#e879f9", "#a855f7", "#22d3ee"] },
+  { name: "Sakura",    c: ["#fff1f2", "#fda4af", "#f472b6", "#fb7185"] },
+  { name: "Ocean",     c: ["#e0f2fe", "#7dd3fc", "#0ea5e9", "#2563eb"] },
+  { name: "Fire",     c: ["#fef08a", "#fb923c", "#ef4444", "#b91c1c"] },
+  { name: "Rainbow",c: ["#f87171", "#facc15", "#4ade80", "#60a5fa", "#c084fc"] },
+];
+const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+
+// glow sprites per color (pre-rendered for speed)
+function sprite(hex) {
+  const s = 32, c = document.createElement("canvas"); c.width = c.height = s;
+  const x = c.getContext("2d"), [r, gg, b] = hexToRgb(hex);
+  const grd = x.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  grd.addColorStop(0, `rgba(255,255,255,1)`);
+  grd.addColorStop(0.18, `rgba(${r},${gg},${b},1)`);
+  grd.addColorStop(0.5, `rgba(${r},${gg},${b},.35)`);
+  grd.addColorStop(1, `rgba(${r},${gg},${b},0)`);
+  x.fillStyle = grd; x.fillRect(0, 0, s, s);
+  return c;
+}
+let paletteIdx = 0, sprites = [];
+function setPalette(i) {
+  paletteIdx = (i + PALETTES.length) % PALETTES.length;
+  const p = PALETTES[paletteIdx];
+  sprites = p.c.map(sprite);
+  $("colorTxt").textContent = p.name;
+  $("swatch").style.background = `linear-gradient(90deg,${p.c.join(",")})`;
+  document.documentElement.style.setProperty("--toast", p.c[1]);
+}
+
+// ======================================================= shapes (unit space ~[-1,1], 3D)
+const N = 4200;
+const rnd = (a = 1) => (Math.random() * 2 - 1) * a;
+
+const SHAPES = [
+  { name: "Heart", gen: i => {
+      const t = Math.random() * Math.PI * 2, fill = Math.random() < 0.25 ? Math.random() : 1;
+      const x = 16 * Math.sin(t) ** 3, y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      return [x / 17 * fill + rnd(.03), -y / 17 * fill + rnd(.03) - .05, rnd(.18) * fill];
+  }},
+  { name: "Galaxy", gen: i => {
+      const arm = i % 3, d = Math.random() ** 0.7, a = arm * 2 * Math.PI / 3 + d * 5.5 + rnd(.35 * (1 - d) + .08);
+      const r = d * 1.05, core = Math.random() < .12;
+      return core ? [rnd(.12), rnd(.08), rnd(.12)] : [Math.cos(a) * r, rnd(.06), Math.sin(a) * r];
+  }, tilt: .45, spin: true },
+  { name: "Star", gen: i => {
+      const k = Math.floor(Math.random() * 10), t = Math.random();
+      const ang = j => -Math.PI / 2 + j * Math.PI / 5, rad = j => j % 2 ? .42 : 1;
+      const a0 = ang(k), a1 = ang(k + 1), r0 = rad(k), r1 = rad(k + 1);
+      const x = Math.cos(a0) * r0 * (1 - t) + Math.cos(a1) * r1 * t, y = Math.sin(a0) * r0 * (1 - t) + Math.sin(a1) * r1 * t;
+      const f = Math.random() < .2 ? Math.random() : 1;
+      return [x * f + rnd(.02), y * f + rnd(.02), rnd(.15)];
+  }},
+  { name: "Saturn", gen: i => {
+      if (i % 5 < 2) { const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, s = Math.sqrt(1 - u * u);
+        return [s * Math.cos(th) * .45, u * .45, s * Math.sin(th) * .45]; }
+      const a = Math.random() * Math.PI * 2, r = .7 + Math.random() * .38;
+      return [Math.cos(a) * r, rnd(.015), Math.sin(a) * r];
+  }, tilt: .38, spin: true },
+  { name: "Flower", gen: i => {
+      const th = Math.random() * Math.PI * 2, r = Math.abs(Math.cos(3 * th)) * (Math.random() < .2 ? Math.random() : 1);
+      return Math.random() < .08 ? [rnd(.08), rnd(.08), rnd(.08)] : [Math.cos(th) * r, Math.sin(th) * r, rnd(.1) + r * .15];
+  }},
+  { name: "DNA", gen: i => {
+      const y = rnd(1.05), a = y * 6, s = i % 7;
+      if (s === 0) { const t = Math.random(); return [Math.cos(a) * .38 * (2 * t - 1), y, Math.sin(a) * .38 * (2 * t - 1)]; }
+      const ph = s % 2 ? 0 : Math.PI;
+      return [Math.cos(a + ph) * .38 + rnd(.02), y, Math.sin(a + ph) * .38 + rnd(.02)];
+  }, spin: true },
+  { name: "Sphere", gen: i => {
+      const gold = Math.PI * (3 - Math.sqrt(5)), y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = gold * i;
+      return [Math.cos(th) * r * .85, y * .85, Math.sin(th) * r * .85];
+  }, spin: true },
+  { name: "HELLO", gen: null }, // filled from text below
+];
+
+// text shape: sample pixels of rendered text
+function textPoints(txt) {
+  const c = document.createElement("canvas"), w = 600, h = 160; c.width = w; c.height = h;
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.font = "900 130px system-ui,sans-serif";
+  x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(txt, w / 2, h / 2 + 6);
+  const d = x.getImageData(0, 0, w, h).data, pts = [];
+  for (let y = 0; y < h; y += 2) for (let xx = 0; xx < w; xx += 2) if (d[(y * w + xx) * 4 + 3] > 128) pts.push([(xx - w / 2) / (w / 2), (y - h / 2) / (w / 2)]);
+  return pts;
+}
+const helloPts = textPoints("HELLO");
+SHAPES[7].gen = () => { const p = helloPts[Math.floor(Math.random() * helloPts.length)]; return [p[0] * 1.1 + rnd(.008), p[1] * 1.1 + rnd(.008), rnd(.08)]; };
+
+// ======================================================= particles
+const P = {
+  x: new Float32Array(N), y: new Float32Array(N), vx: new Float32Array(N), vy: new Float32Array(N),
+  tx: new Float32Array(N), ty: new Float32Array(N), tz: new Float32Array(N),
+  seed: new Float32Array(N), col: new Uint8Array(N), size: new Float32Array(N),
+};
+let shapeIdx = 0;
+function setShape(i, burst = true) {
+  shapeIdx = (i + SHAPES.length) % SHAPES.length;
+  const s = SHAPES[shapeIdx];
+  for (let k = 0; k < N; k++) {
+    const [x, y, z] = s.gen(k);
+    P.tx[k] = x; P.ty[k] = y; P.tz[k] = z;
+    if (burst) { const a = Math.random() * Math.PI * 2, v = 6 + Math.random() * 14; P.vx[k] += Math.cos(a) * v; P.vy[k] += Math.sin(a) * v; }
+  }
+  $("shapeTxt").textContent = s.name;
+}
+let W = 0, H = 0, DPR = 1;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = innerWidth; H = innerHeight;
+  fx.width = W * DPR; fx.height = H * DPR; g.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+addEventListener("resize", resize); resize();
+for (let k = 0; k < N; k++) {
+  P.x[k] = Math.random() * W; P.y[k] = Math.random() * H;
+  P.seed[k] = Math.random() * 1000; P.col[k] = k % 5; P.size[k] = 0.6 + Math.random() ** 3 * 1.8;
+}
+setPalette(0); setShape(0, false);
+
+// ======================================================= hand state
+const S = {
+  right: null, left: null,          // latest landmarks (normalized, mirrored x)
+  open: 0.5, openSm: 0.5,           // right-hand openness 0..1
+  near: 0.4, nearSm: 0.4,           // closeness 0 (far) .. 1 (near)
+  pinch: false, pinchPt: null,      // index fingertip in screen coords
+  peace: false, lastPeace: 0,
+  fistArmed: false, lastSwitch: 0,
+  rotTarget: 0, rot: 0, rotSpeed: .25,
+  twoHandScale: null, scaleSm: 1,
+};
+
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+function analyseHand(lm) {
+  const palm = dist(lm[0], lm[9]) + 1e-6;                         // wrist -> middle knuckle
+  const tips = [8, 12, 16, 20].map(i => dist(lm[i], lm[0]) / palm);
+  const avg = tips.reduce((a, b) => a + b, 0) / 4;                // ~0.9 fist .. ~2.0 open
+  const open = Math.min(1, Math.max(0, (avg - 1.0) / 0.9));
+  const pinch = dist(lm[4], lm[8]) / palm < 0.32;
+  const ext = i => dist(lm[i], lm[0]) / palm > 1.55;              // finger extended?
+  const peace = ext(8) && ext(12) && !ext(16) && !ext(20) && !pinch;
+  return { open, palm, pinch, peace };
+}
+function describeHand(h) {
+  if (!h) return "not detected";
+  if (h.pinch) return "🤏 Pinch";
+  if (h.peace) return "✌️ Peace";
+  if (h.open > .75) return "🖐 open";
+  if (h.open < .25) return "✊ fist";
+  return "👋 half open";
+}
+const toScreen = p => [(p.x) * W, p.y * H];  // x already mirrored
+
+function updateHands(res, now) {
+  let right = null, left = null;
+  res.landmarks.forEach((lm, i) => {
+    const label = res.handedness?.[i]?.[0]?.categoryName;
+    // We feed the un-mirrored camera image, MediaPipe assumes a mirrored one -> swap
+    const real = label === "Left" ? "Right" : "Left";
+    const m = lm.map(p => ({ x: 1 - p.x, y: p.y, z: p.z }));      // mirror for screen
+    if (real === "Right" && !right) right = m; else if (!left) left = m; else right = m;
+  });
+  // with one hand only, treat it as the "right" (main) hand
+  if (!right && left && res.landmarks.length === 1) { right = left; left = null; }
+  S.right = right; S.left = left;
+
+  const R = right && analyseHand(right), L = left && analyseHand(left);
+  $("rState").textContent = describeHand(R);
+  $("lState").textContent = describeHand(L);
+
+  if (R) {
+    S.open = R.open;
+    S.near = Math.min(1, Math.max(0, (R.palm - 0.08) / 0.22));
+    // fist -> open switches shape & palette
+    if (R.open < .2) S.fistArmed = true;
+    if (S.fistArmed && R.open > .75 && now - S.lastSwitch > 700) {
+      S.fistArmed = false; S.lastSwitch = now;
+      setShape(shapeIdx + 1); setPalette(paletteIdx + 1);
+      toast(`${SHAPES[shapeIdx].name} · ${PALETTES[paletteIdx].name}`);
+    }
+    S.pinch = R.pinch;
+    S.pinchPt = R.pinch ? toScreen(right[8]) : null;
+    if (R.peace && !S.peace && now - S.lastPeace > 900) { S.lastPeace = now; firework(toScreen(right[12])); }
+    S.peace = R.peace;
+  } else { S.pinch = false; S.pinchPt = null; }
+
+  // left hand: horizontal position = rotation speed (like a dial)
+  if (L) S.rotSpeed = (left[9].x - 0.25) * 4; else S.rotSpeed += (0.25 - S.rotSpeed) * 0.02;
+  // two hands: their distance sets the size
+  S.twoHandScale = (R && L) ? Math.min(1.8, Math.max(0.35, dist(right[9], left[9]) * 2.4)) : null;
+
+  $("openTxt").textContent = R ? Math.round(S.open * 100) + " %" : "–";
+  $("openBar").style.width = (R ? S.open * 100 : 0) + "%";
+  $("distTxt").textContent = R ? (S.near > .66 ? "near" : S.near > .33 ? "medium" : "far") : "–";
+  $("distBar").style.width = (R ? S.near * 100 : 0) + "%";
+}
+
+// ======================================================= effects
+const sparks = [];
+function firework([x, y]) {
+  const p = PALETTES[paletteIdx].c;
+  for (let i = 0; i < 260; i++) {
+    const a = Math.random() * Math.PI * 2, v = 2 + Math.random() * 9;
+    sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, c: Math.floor(Math.random() * p.length) });
+  }
+  // also give the main particles a kick away from the hand
+  for (let k = 0; k < N; k += 2) { const dx = P.x[k] - x, dy = P.y[k] - y, d = Math.hypot(dx, dy) + 30; P.vx[k] += dx / d * 18; P.vy[k] += dy / d * 18; }
+  toast("✨ Fireworks");
+}
+let toastTimer;
+function toast(t) {
+  const el = $("toast"); el.textContent = t; el.style.color = PALETTES[paletteIdx].c[1];
+  el.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 1300);
+}
+
+// ======================================================= render loop
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  S.openSm += (S.open - S.openSm) * 0.12;
+  S.nearSm += (S.near - S.nearSm) * 0.08;
+  S.rot += S.rotSpeed * dt;
+
+  // size: two hands override; otherwise moving closer shrinks the shape
+  const baseScale = S.twoHandScale ?? (1.15 - S.nearSm * 0.6);
+  S.scaleSm += (baseScale - S.scaleSm) * 0.08;
+  const R = Math.min(W, H) * 0.28 * S.scaleSm;
+  const cx = W / 2, cy = H / 2 + 10;
+  const bloom = S.openSm;                         // 0 = tight, 1 = blooming
+  const t = now / 1000;
+  const shape = SHAPES[shapeIdx], tilt = shape.tilt || 0.12;
+  // 3D shapes spin all the way round; flat shapes (heart, star, text ...) only sway
+  const ang = shape.spin ? S.rot : Math.sin(S.rot) * 0.55;
+  const cr = Math.cos(ang), sr = Math.sin(ang), ct = Math.cos(tilt), st = Math.sin(tilt);
+
+  // trails: translucent background instead of full clear
+  g.globalCompositeOperation = "source-over";
+  g.fillStyle = "rgba(6,7,13,0.38)"; g.fillRect(0, 0, W, H);
+  g.globalCompositeOperation = "lighter";
+
+  const spr = sprites, nCol = spr.length;
+  for (let k = 0; k < N; k++) {
+    // rotate target around Y, then tilt around X, simple perspective
+    let x = P.tx[k], y = P.ty[k], z = P.tz[k];
+    const x1 = x * cr - z * sr, z1 = x * sr + z * cr;
+    const y2 = y * ct - z1 * st, z2 = y * st + z1 * ct;
+    const persp = 2.6 / (2.6 + z2);
+    // breathing + bloom: open hand pushes particles outwards with a soft wobble
+    const s = P.seed[k];
+    const wob = 1 + Math.sin(t * 1.6 + s) * 0.025 + bloom * (0.15 + 0.55 * ((s * 7.31) % 1));
+    let gx = cx + x1 * R * persp * wob + Math.sin(t * 0.9 + s) * bloom * 18;
+    let gy = cy + y2 * R * persp * wob + Math.cos(t * 1.1 + s * 1.3) * bloom * 18;
+
+    // pinch: particles swirl around the fingertip
+    if (S.pinchPt) {
+      const a = t * 3 + s, rr = 18 + ((s * 13.7) % 1) * 70;
+      gx = S.pinchPt[0] + Math.cos(a) * rr; gy = S.pinchPt[1] + Math.sin(a * 1.3) * rr;
+    }
+
+    const stiff = S.pinchPt ? 0.035 : 0.06;
+    P.vx[k] = (P.vx[k] + (gx - P.x[k]) * stiff) * 0.86;
+    P.vy[k] = (P.vy[k] + (gy - P.y[k]) * stiff) * 0.86;
+    P.x[k] += P.vx[k]; P.y[k] += P.vy[k];
+
+    const sz = (1.3 + P.size[k] * 1.9) * persp * (0.9 + bloom * 0.35);
+    g.globalAlpha = Math.min(1, 0.22 + 0.22 * persp);
+    g.drawImage(spr[P.col[k] % nCol], P.x[k] - sz, P.y[k] - sz, sz * 2, sz * 2);
+  }
+
+  // firework sparks
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const p = sparks[i]; p.vy += 0.12; p.vx *= 0.985; p.vy *= 0.985; p.x += p.vx; p.y += p.vy; p.life -= 0.012;
+    if (p.life <= 0) { sparks.splice(i, 1); continue; }
+    g.globalAlpha = p.life; const sz = 3 + p.life * 5;
+    g.drawImage(spr[p.c % nCol], p.x - sz, p.y - sz, sz * 2, sz * 2);
+  }
+  g.globalAlpha = 1;
+
+  // glowing fingertip cursor while pinching
+  if (S.pinchPt) {
+    g.globalCompositeOperation = "lighter";
+    g.drawImage(spr[1 % nCol], S.pinchPt[0] - 26, S.pinchPt[1] - 26, 52, 52);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ======================================================= camera preview with landmarks
+const BONES = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function drawCam(res) {
+  if ($("cam").classList.contains("hidden")) return;
+  const w = camC.width = video.videoWidth, h = camC.height = video.videoHeight;
+  cg.clearRect(0, 0, w, h);
+  res.landmarks.forEach(lm => {          // overlay canvas is mirrored by CSS like the video
+    cg.strokeStyle = "rgba(94,234,212,.9)"; cg.lineWidth = 3;
+    for (const [a, b] of BONES) { cg.beginPath(); cg.moveTo(lm[a].x * w, lm[a].y * h); cg.lineTo(lm[b].x * w, lm[b].y * h); cg.stroke(); }
+    cg.fillStyle = "#818cf8";
+    for (const p of lm) { cg.beginPath(); cg.arc(p.x * w, p.y * h, 4, 0, Math.PI * 2); cg.fill(); }
+  });
+}
+
+// ======================================================= MediaPipe
+let landmarker, lastTs = -1;
+async function loadModel() {
+  const { FilesetResolver, HandLandmarker } = await import(`${CDN}/vision_bundle.mjs`);
+  const fileset = await FilesetResolver.forVisionTasks(`${CDN}/wasm`);
+  let err;
+  for (const delegate of ["GPU", "CPU"]) {
+    try {
+      return await HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: MODEL, delegate }, runningMode: "VIDEO", numHands: 2,
+        minHandDetectionConfidence: 0.5, minHandPresenceConfidence: 0.5, minTrackingConfidence: 0.5,
+      });
+    } catch (e) { err = e; }
+  }
+  throw err;
+}
+function detectLoop() {
+  if (video.readyState >= 2) {
+    let ts = performance.now(); if (ts <= lastTs) ts = lastTs + 1; lastTs = ts;
+    const res = landmarker.detectForVideo(video, ts);
+    updateHands(res, ts);
+    drawCam(res);
+  }
+  requestAnimationFrame(detectLoop);
+}
+
+$("startBtn").onclick = async () => {
+  $("startBtn").disabled = true;
+  try {
+    video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { width: 960, height: 720 }, audio: false });
+    await video.play();
+  } catch {
+    $("startText").textContent = "No camera access. Please allow the camera and open the page via start_website.py.";
+    $("startText").classList.add("err"); $("startBtn").disabled = false; return;
+  }
+  $("start").style.display = "none";
+  toast("Show me your hand 🖐");
+  requestAnimationFrame(detectLoop);
+};
+
+// ======================================================= keyboard
+addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey) return;
+  const k = e.key.toLowerCase();
+  if (k === " " || k === "arrowright") { setShape(shapeIdx + 1); toast(SHAPES[shapeIdx].name); e.preventDefault(); }
+  else if (k === "arrowleft") { setShape(shapeIdx - 1); toast(SHAPES[shapeIdx].name); }
+  else if (k === "f") { setPalette(paletteIdx + 1); toast(PALETTES[paletteIdx].name); }
+  else if (k === "c") { $("cam").classList.toggle("hidden"); }
+});
+
+try {
+  landmarker = await loadModel();
+  $("startText").textContent = "Ready! Allow camera access and show your hand.";
+  $("startBtn").disabled = false;
+} catch (e) {
+  $("startText").textContent = "Could not load MediaPipe (internet connection?). " + (e?.message || "");
+  $("startText").classList.add("err");
+}
+</script>
+</body>
+</html>
