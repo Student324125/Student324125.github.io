@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pforzheim AI Course Islands</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   PFORZHEIM AI COURSE ISLANDS  -  styles
+   Colors / sizes live in the :root tokens. Low-stimulation mode simply
+   re-defines the tokens below (see body.lowstim).
+   ===================================================================== */
+:root{
+  --sky-top:#cfe6ff; --sky-mid:#e6defa; --sky-bot:#ffe4ee;
+  --ink:#2a3150; --ink-soft:#566083; --card:rgba(255,255,255,.93); --soft:#f2f4ff; --line:#d5dbf2;
+  --accent:#7d8cff; --accent-soft:#e4e8ff; --accent-btn:#4656cf; --focus:#3f4fd0;
+  --good:#1f7a5a; --good-bg:#dff5ea; --warn:#8a5410; --warn-bg:#fff1d9;
+  --fs:1; --ls:0em; --lh:1.6; --radius:18px;
+  --shadow:0 10px 30px rgba(80,90,150,.18);
+  --font:"Nunito","Quicksand","Segoe UI Rounded","Trebuchet MS",system-ui,-apple-system,sans-serif;
+}
+/* Low-stimulation mode: flat, calmer colors, slightly larger and airier text, no transitions */
+body.lowstim{
+  --sky-top:#e9ebf3; --sky-mid:#e9ebf3; --sky-bot:#e9ebf3;
+  --accent:#8c96bd; --accent-soft:#eceef6; --accent-btn:#4f5a94; --soft:#f4f5f9; --line:#d7dae6;
+  --fs:1.08; --ls:.02em; --lh:1.85;
+}
+body.lowstim #gl{filter:saturate(.6)}
+body.lowstim *,body.lowstim *::before,body.lowstim *::after{animation:none!important;transition-duration:.01ms!important;transition-delay:0s!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--font);color:var(--ink);font-size:calc(17px*var(--fs));line-height:var(--lh);letter-spacing:var(--ls);
+  background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 55%,var(--sky-bot) 100%);overflow:hidden;-webkit-text-size-adjust:100%}
+body.no3d{overflow:auto}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:fixed;left:12px;top:-60px;z-index:100;background:#fff;padding:10px 14px;border-radius:12px;font-weight:700;color:var(--accent-btn)}
+.skip:focus{top:12px}
+
+/* ---------- 3D stage ---------- */
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;z-index:1}
+#gl.grabbing{cursor:grabbing} #gl.pointer{cursor:pointer}
+body.no3d #gl,body.no3d #labels{display:none}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:10}
+.label{position:absolute;left:0;top:0;pointer-events:auto;border:0;background:none;padding:0;cursor:pointer;will-change:transform;display:none}
+.label .chip{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:#fff;color:var(--ink);
+  font-weight:800;font-size:1.2rem;box-shadow:0 6px 16px rgba(80,90,150,.25);border:4px solid var(--c);transition:transform .45s ease,box-shadow .45s ease}
+.label .name{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff;color:var(--ink);
+  padding:6px 12px;border-radius:12px;font-size:.82rem;font-weight:700;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .5s ease}
+.label.hot .chip,.label:focus-visible .chip{transform:scale(1.12);box-shadow:0 0 0 6px rgba(255,255,255,.65),0 8px 22px rgba(80,90,150,.3)}
+.label.hot .name,.label:focus-visible .name{opacity:1}
+.label.active .chip{background:var(--c)}
+.label:focus-visible{outline:none}
+.label:focus-visible .chip{outline:3px solid var(--focus);outline-offset:3px}
+
+/* ---------- header + toolbar ---------- */
+.top{position:fixed;z-index:20;top:0;left:0;right:0;padding:14px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left));pointer-events:none}
+.top>*{pointer-events:auto}
+h1{margin:0;width:fit-content;max-width:100%;font-size:clamp(1.2rem,2.5vw,1.9rem);font-weight:800;line-height:1.2;text-shadow:0 1px 0 rgba(255,255,255,.7)}
+.by{font-size:.5em;font-weight:600;color:var(--ink-soft);margin-left:.6em;white-space:nowrap}
+body.panel-open h1{max-width:calc(100vw - 480px)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+@media(min-width:761px){
+  .toolbar{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));max-width:calc(100vw - 32px)}
+  body.panel-open .toolbar{max-width:calc(100vw - 490px)}
+}
+@media(max-width:760px){.toolbar{margin-top:8px;gap:6px}.by{display:block;margin:2px 0 0}body.panel-open h1{max-width:100%}}
+.tb,.vol{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);
+  font-weight:700;font-size:.88rem;line-height:1.1;cursor:pointer;box-shadow:0 4px 12px rgba(80,90,150,.12)}
+.tb:disabled{opacity:.55;cursor:not-allowed}
+.tb[aria-pressed=true],.tb[aria-checked=true]{background:var(--accent-soft);border-color:var(--accent)}
+.tb .dot{width:10px;height:10px;border-radius:50%;background:#b8bfd9}
+.tb[aria-pressed=true] .dot,.tb[aria-checked=true] .dot{background:var(--good)}
+.vol{cursor:default}.vol input{width:84px;accent-color:var(--accent-btn)}
+
+/* ---------- text-only list / fallback ---------- */
+#textList{display:none;position:fixed;inset:0;overflow:auto;z-index:5;padding:120px max(16px,env(safe-area-inset-right)) 120px max(16px,env(safe-area-inset-left))}
+body.no3d #textList{display:block}
+#textList .wrap{max-width:720px;margin:0 auto}
+#textUl{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.tl-btn{width:100%;text-align:left;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;align-items:center;padding:14px 16px;border-radius:var(--radius);
+  border:1.5px solid var(--line);background:var(--card);cursor:pointer;box-shadow:0 4px 12px rgba(80,90,150,.1)}
+.tl-btn .l{grid-row:span 2;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--c);font-weight:800;font-size:1.15rem}
+.tl-btn b{font-size:1.02rem}.tl-btn span{color:var(--ink-soft);font-size:.9rem}
+#fallback{position:fixed;inset:0;display:grid;place-items:center;padding:24px;z-index:6;pointer-events:none}
+#fallback[hidden]{display:none}
+#fallback div{max-width:440px;background:var(--card);padding:20px 22px;border-radius:var(--radius);box-shadow:var(--shadow);pointer-events:auto}
+
+/* ---------- hint ---------- */
+#hint{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:25;max-width:min(92vw,470px);padding:12px 14px 12px 18px;border-radius:16px;
+  background:var(--card);box-shadow:var(--shadow);display:flex;gap:12px;align-items:center;font-weight:700;transition:opacity .8s ease}
+#hint[hidden]{display:none}#hint.fade{opacity:0}
+@media(max-width:760px){#hint{bottom:24px}}
+
+/* ---------- side panel (bottom sheet on phones) ---------- */
+#panel{position:fixed;z-index:30;top:0;right:0;bottom:0;width:min(450px,100vw);background:var(--card);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:-10px 0 40px rgba(80,90,150,.2);overflow:auto;padding:20px max(20px,env(safe-area-inset-right)) 32px 22px;
+  transform:translateX(105%);visibility:hidden;transition:transform .55s ease,visibility 0s .55s;overscroll-behavior:contain}
+#panel.open{transform:none;visibility:visible;transition:transform .55s ease}
+@media(max-width:760px){
+  #panel{top:auto;width:100%;height:min(57vh,540px);border-radius:24px 24px 0 0;padding:16px 16px 28px;transform:translateY(105%)}
+}
+.p-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.badge{display:inline-block;padding:3px 12px;border-radius:999px;font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--tint);color:var(--ink)}
+#pTitle{margin:.45em 0 .3em;font-size:1.4rem;line-height:1.25;outline:none}
+.intro{margin:0}
+#panel h3{font-size:1.02rem;margin:1.3rem 0 .5rem}
+.lessons{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lessons li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:10px 12px;border-radius:14px;background:var(--soft)}
+.lnum{font-weight:800;color:var(--accent-btn);background:#fff;border-radius:10px;padding:1px 8px;height:fit-content;font-size:.9rem}
+.ltitle{font-weight:700}.ldesc{grid-column:2;color:var(--ink-soft);font-size:.92rem}
+.act{margin-top:1.4rem;padding:14px;border-radius:var(--radius);background:var(--soft);border:1.5px dashed var(--line)}
+.act h3{margin-top:0!important}.act p{margin:.2rem 0 .7rem}
+.p-nav{display:flex;justify-content:space-between;gap:8px;margin-top:1.4rem;flex-wrap:wrap}
+
+/* ---------- buttons + activity widgets ---------- */
+.btn{border:0;border-radius:999px;padding:9px 16px;background:var(--accent-btn);color:#fff;font-weight:700;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--accent-btn);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.x{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.opt{display:block;width:100%;text-align:left;margin:0 0 6px;padding:9px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600}
+.opt.sel{border-color:var(--accent-btn);background:var(--accent-soft)}
+.opt.ok{border-color:var(--good);background:var(--good-bg);color:var(--good)}
+.opt.try{border-color:#e0a64a;background:var(--warn-bg);color:var(--warn)}
+.opt:disabled{cursor:default}
+.fb{min-height:1.6em;font-weight:700;margin:6px 0 0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.cols h4{margin:0 0 6px;font-size:.82rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
+.steps{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.slot{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;border:1.5px dashed var(--line);background:#fff;min-height:42px}
+.slot.on{border-style:solid;border-color:var(--accent)}.slot i{font-style:normal;font-weight:800;color:var(--accent-btn)}
+.tag{display:inline-block;font-size:.72rem;font-weight:800;background:var(--accent-soft);color:var(--accent-btn);border-radius:8px;padding:0 7px;margin-left:6px}
+.checks label,.radios label{display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:600}
+.checks input,.radios input{width:20px;height:20px;accent-color:var(--accent-btn)}
+textarea,select{width:100%;padding:9px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;resize:vertical}
+.sum{margin-top:10px;padding:12px 14px;border-radius:14px;background:#fff;border:1.5px solid var(--line)}
+.sum ul{margin:.3rem 0 0;padding-left:1.2rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+.cwrap{display:grid;gap:4px;justify-items:start}
+.fcard{position:relative;width:100%;min-height:116px;border:0;padding:0;background:none;cursor:pointer;perspective:700px}
+.fcard .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .8s ease}
+.fcard.flipped .in{transform:rotateY(180deg)}
+.fcard .f,.fcard .b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center;text-align:center;
+  padding:8px;border-radius:14px;border:1.5px solid var(--line);font-weight:700;font-size:.9rem}
+.fcard .f{background:#fff;font-size:1rem}.fcard .b{background:var(--accent-soft);transform:rotateY(180deg);font-weight:600;font-size:.82rem}
+body.lowstim .fcard .in{transform:none!important}
+body.lowstim .fcard .f{display:grid}body.lowstim .fcard .b{display:none;transform:none}
+body.lowstim .fcard.flipped .f{display:none}body.lowstim .fcard.flipped .b{display:grid}
+</style>
+</head>
+<body>
+<a class="skip" href="#textList" id="skipLink">Skip to the text-only list of islands</a>
+
+<header class="top">
+  <h1>Pforzheim AI Course Islands <span class="by">by Prof Luarn</span></h1>
+  <div class="toolbar" role="group" aria-label="Navigation, sound and display settings">
+    <button class="tb" id="backBtn" hidden aria-label="Back to overview">&larr; Back to overview</button>
+    <button class="tb" id="musicBtn" aria-pressed="false" aria-label="Background music, currently off"><span class="dot" aria-hidden="true"></span><span id="musicTxt">Music: Off</span></button>
+    <label class="vol">Volume <input id="vol" type="range" min="0" max="100" value="35" aria-label="Music volume"></label>
+    <button class="tb" id="lowBtn" role="switch" aria-checked="false"><span class="dot" aria-hidden="true"></span>Low-stimulation mode</button>
+    <button class="tb" id="skipBtn" aria-pressed="false" aria-label="Skip 3D view and show a text-only list of islands">Skip 3D view</button>
+  </div>
+</header>
+
+<main id="stage">
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <div id="labels" role="group" aria-label="Course islands. Tab to move between islands, Enter to open one."></div>
+  <section id="textList" aria-label="Text-only list of islands" tabindex="-1">
+    <div class="wrap"><h2>All course islands</h2><ul id="textUl"></ul></div>
+  </section>
+  <div id="fallback" hidden><div role="alert"><strong>The 3D view is not available.</strong>
+    <p>Your browser or device could not start WebGL (or the 3D library could not be loaded). You can still explore every island below in text form.</p></div></div>
+</main>
+
+<aside id="panel" role="dialog" aria-modal="false" aria-labelledby="pTitle" tabindex="-1">
+  <div id="pBody"></div>
+</aside>
+
+<div id="hint" role="status"><span>Drag to rotate, scroll to zoom, click an island to explore.</span><button class="btn ghost" id="hintOk" aria-label="Dismiss hint">Got it</button></div>
+<div id="live" class="sr" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   ISLAND DATA + ACTIVITY BUILDERS  (injected into the final HTML)
+   ===================================================================== */
+
+const ISLANDS = [
+  {
+    id:'A', label:'Island A', unit:'Unit 1', title:'Getting Started with Perceptual AI',
+    color:'#ff9f7f', tint:'#fff0eb',
+    intro:'Begin your journey into perceptual AI — the branch of AI that sees, hears, and senses the world. You\'ll build your own web presence, explore Google\'s ready-made perceptual tools, and train your first recognition model without writing a single line of deep-learning code.',
+    lessons:[
+      {n:'1.1', t:'Build your own personal web page and course introduction', d:'Create a simple personal page and get a feel for what this course has in store.'},
+      {n:'1.2', t:'Introduction to Google MediaPipe Tasks (perceptual AI)', d:'Discover MediaPipe — Google\'s toolkit for running real-time vision and audio tasks in the browser.'},
+      {n:'1.3', t:'Train your own recognition model with Teachable Machine', d:'Use Google Teachable Machine to train a custom image classifier — no code required.'},
+      {n:'1.4', t:'Image object recognition with Google Antigravity', d:'Run an image through a pre-trained object-recognition model and read the results.'},
+      {n:'1.5', t:'Video object recognition with Google Antigravity', d:'Apply the same detection pipeline to live video and explore frame-by-frame output.'},
+    ],
+    // activity built by buildActA()
+    act:'match'
+  },
+  {
+    id:'B', label:'Island B', unit:'Unit 2', title:'MediaPipe Vision Tasks',
+    color:'#7fc8ff', tint:'#e9f4ff',
+    intro:'Dive deeper into MediaPipe\'s vision toolkit. Each lesson is a hands-on session with a specific sensing task — from mapping every landmark on a face to recognising hand gestures in real time.',
+    lessons:[
+      {n:'2.1', t:'MediaPipe Face Landmark Detection', d:'Detect 468 facial landmarks from a static image in the browser.'},
+      {n:'2.2', t:'MediaPipe Video Face Landmark Detection', d:'Apply face landmark detection to a live webcam or video stream.'},
+      {n:'2.3', t:'MediaPipe Pose Landmark Detection', d:'Track 33 body pose landmarks to capture posture and movement.'},
+      {n:'2.4', t:'MediaPipe Gesture Recognition', d:'Identify hand gestures such as thumbs-up or victory sign in real time.'},
+      {n:'2.5', t:'MediaPipe Image Segmentation', d:'Separate the subject from the background pixel by pixel.'},
+      {n:'2.6', t:'MediaPipe Face Detection', d:'Quickly locate and frame one or more faces in an image or video.'},
+    ],
+    act:'pick'
+  },
+  {
+    id:'C', label:'Island C', unit:'Unit 3', title:'Real-Time Models and Creative AI',
+    color:'#a3d9a5', tint:'#edf8ee',
+    intro:'Move from sensing to creating. This unit pairs real-time classification with generative and creative AI — training live classifiers, applying neural style, and building a simple chat app with a Gemini API key.',
+    lessons:[
+      {n:'3.1', t:'Teachable Machine Real-Time Object Classifier', d:'Deploy your Teachable Machine model so it classifies objects via the webcam live.'},
+      {n:'3.2', t:'YOLO', d:'Explore the YOLO object-detection family and run a lightweight model in the browser.'},
+      {n:'3.3', t:'Neural Style Transfer', d:'Apply the visual style of one image (e.g. a painting) to another using a neural network.'},
+      {n:'3.4', t:'Simple Chat App Built with a Gemini API Key', d:'Wire up a minimal chat interface that calls the Gemini API to answer questions.'},
+      {n:'3.5', t:'Island Builder', d:'Combine the skills from this unit to build your own interactive "island" project.'},
+    ],
+    act:'pipeline'
+  },
+  {
+    id:'D', label:'Island D', unit:'Unit 4', title:'Gemini and Multimodal Workflows',
+    color:'#c9a8ff', tint:'#f4eeff',
+    intro:'Get hands-on with Gemini — Google\'s multimodal model that reasons across text, images, audio, and more. Each lesson explores a different surface: notebooks, canvases, skills, or multi-step workflows.',
+    lessons:[
+      {n:'4.1', t:'Use a multimodal model to let Ollama recognize images', d:'Connect a locally running Ollama model to an image and read its multimodal output.'},
+      {n:'4.2', t:'Gemini', d:'Explore the Gemini model family and make your first direct API calls.'},
+      {n:'4.3', t:'Gemini Notebook', d:'Use Gemini Notebook to organise long-context research and generate summaries.'},
+      {n:'4.4', t:'Gemini Canvas', d:'Combine documents, chat, and generated content on a Gemini Canvas.'},
+      {n:'4.5', t:'Gemini Skills-1', d:'Build your first Gemini-powered skill and integrate it into a workflow.'},
+      {n:'4.6', t:'Gemini Skills-2', d:'Extend your skill with additional tools and conditional logic.'},
+      {n:'4.7', t:'Gemini Skills-3', d:'Combine multiple skills and test a complete multimodal pipeline end-to-end.'},
+    ],
+    act:'helper'
+  },
+  {
+    id:'E', label:'Island E', unit:'Unit 5', title:'AI Agents',
+    color:'#ffd07f', tint:'#fff8e9',
+    intro:'Step into the age of AI agents — systems that plan, use tools, and act across multiple steps without constant hand-holding. From no-code workflow builders to custom agent frameworks, you\'ll design and evaluate agents of your own.',
+    lessons:[
+      {n:'5.1', t:'n8n', d:'Build automated workflows visually with the n8n no-code platform.'},
+      {n:'5.2', t:'ChatGPT multi-agent', d:'Explore multi-agent setups in ChatGPT where separate agents collaborate on a task.'},
+      {n:'5.3', t:'ChatGPT Skills', d:'Extend ChatGPT with custom skills to automate recurring tasks.'},
+      {n:'5.4', t:'ChatGPT Plugins - canva', d:'Integrate the Canva plugin into a ChatGPT workflow for design generation.'},
+      {n:'5.5', t:'ChatGPT Sites', d:'Use ChatGPT to generate and iterate on web pages or micro-sites.'},
+      {n:'5.6', t:'Claude Skills', d:'Author and test a skill for the Claude Code agent.'},
+      {n:'5.7', t:'OpenClaw', d:'Explore the OpenClaw framework — explore in class.'},
+      {n:'5.8', t:'Hermes Agent', d:'Meet the Hermes Agent framework and run a sample agentic loop — explore in class.'},
+    ],
+    act:'sort'
+  },
+  {
+    id:'F', label:'Island F', unit:'Unit 6', title:'The Next Wave of AI Tools',
+    color:'#ff8fc9', tint:'#ffecf5',
+    intro:'Scan the horizon of emerging AI tools. Each lesson introduces a tool or platform you\'ll explore in class — no prior knowledge assumed. Focus on what each tool might make possible rather than mastering every detail.',
+    lessons:[
+      {n:'6.1', t:'Meta Muse', d:'Explore Meta Muse — explore in class.'},
+      {n:'6.2', t:'Manus Cue!', d:'Discover Manus Cue! — explore in class.'},
+      {n:'6.3', t:'Hark Pro', d:'Try out Hark Pro — explore in class.'},
+      {n:'6.4', t:'OpenAI Dots', d:'See what OpenAI Dots offers — explore in class.'},
+      {n:'6.5', t:'Grok Bot', d:'Explore Grok Bot — explore in class.'},
+      {n:'6.6', t:'Claude Duet', d:'Experience Claude Duet — explore in class.'},
+    ],
+    act:'flip'
+  }
+];
+
+/* ---------- Activity builders ---------- */
+
+function buildActA(el){
+  const tools = ['Google MediaPipe','Teachable Machine','Google Antigravity'];
+  const tasks = ['Real-time webcam gesture detection','Training a custom image classifier','Running object recognition on a photo'];
+  // correct mapping: 0→0, 1→1, 2→2
+  let sel = null;
+  el.innerHTML = `
+    <h3>Activity: Match the Tool to the Task</h3>
+    <p>Select a tool, then click the task it's best suited for.</p>
+    <div class="cols">
+      <div><h4>Tools</h4><div id="actA-tools"></div></div>
+      <div><h4>Tasks</h4><div id="actA-tasks"></div></div>
+    </div>
+    <div class="fb" id="actA-fb" aria-live="polite"></div>
+    <button class="btn ghost" id="actA-reset" style="margin-top:8px">Reset</button>`;
+
+  const matched = {};
+  const render = ()=>{
+    const tDiv = el.querySelector('#actA-tools');
+    const qDiv = el.querySelector('#actA-tasks');
+    tDiv.innerHTML = tools.map((t,i)=>`<button class="opt${sel===i?' sel':''}" data-ti="${i}">${t}</button>`).join('');
+    qDiv.innerHTML = tasks.map((t,i)=>`<button class="opt${matched[i]!==undefined?(matched[i]===i?' ok':' try'):''}" data-qi="${i}">${t}</button>`).join('');
+    tDiv.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{sel=+b.dataset.ti;render()}));
+    qDiv.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      if(sel===null){el.querySelector('#actA-fb').textContent='Pick a tool first!';return;}
+      matched[+b.dataset.qi]=sel;sel=null;
+      const all=Object.values(matched);
+      const right=Object.entries(matched).filter(([k,v])=>+k===+v).length;
+      el.querySelector('#actA-fb').textContent=all.length===3?(right===3?'All matched correctly! 🎉':'Some are off — keep trying!'):`${right}/${all.length} correct so far.`;
+      render();
+    }));
+    el.querySelector('#actA-reset').onclick=()=>{Object.keys(matched).forEach(k=>delete matched[k]);sel=null;el.querySelector('#actA-fb').textContent='';render();};
+  };
+  render();
+}
+
+function buildActB(el){
+  const qs=[
+    {q:'You want to draw 468 points on a person\'s face from a single photo.',ans:1,opts:['MediaPipe Gesture Recognition','MediaPipe Face Landmark Detection','MediaPipe Image Segmentation']},
+    {q:'You want to separate a person from their background in real time.',ans:2,opts:['MediaPipe Face Detection','MediaPipe Pose Landmark Detection','MediaPipe Image Segmentation']},
+    {q:'Your app needs to know if the user is showing a "thumbs up".',ans:0,opts:['MediaPipe Gesture Recognition','MediaPipe Face Detection','MediaPipe Face Landmark Detection']},
+    {q:'You need to quickly find the bounding box around each face in a crowd photo.',ans:1,opts:['MediaPipe Pose Landmark Detection','MediaPipe Face Detection','MediaPipe Gesture Recognition']},
+  ];
+  let cur=0,score=0,done=false;
+  const render=()=>{
+    if(cur>=qs.length){
+      el.innerHTML=`<h3>Activity: Which Task Would You Use?</h3><p>Score: <strong>${score}/${qs.length}</strong></p>
+        <p>${score===qs.length?'Perfect! You know your MediaPipe tasks 🏆':score>=qs.length/2?'Good effort! Review the ones you missed.':'Take another look at the task descriptions.'}</p>
+        <button class="btn ghost" id="actB-reset">Try again</button>`;
+      el.querySelector('#actB-reset').onclick=()=>{cur=0;score=0;done=false;render();};
+      return;
+    }
+    const q=qs[cur];
+    el.innerHTML=`<h3>Activity: Which Task Would You Use?</h3>
+      <p><em>Scenario ${cur+1}/${qs.length}:</em> ${q.q}</p>
+      ${q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}
+      <div class="fb" id="actB-fb" aria-live="polite"></div>`;
+    el.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+      if(done)return;done=true;
+      const i=+b.dataset.i;
+      el.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      b.classList.add(i===q.ans?'ok':'try');
+      if(i===q.ans)score++;
+      el.querySelector('#actB-fb').textContent=i===q.ans?'Correct! ✓':'Not quite — the right answer is '+q.opts[q.ans]+'.';
+      setTimeout(()=>{cur++;done=false;render();},1500);
+    }));
+  };
+  render();
+}
+
+function buildActC(el){
+  const steps=['Capture input (image, video, text…)','Run the AI model','Post-process output','Display result to user'];
+  let order=[...steps].sort(()=>Math.random()-.5);
+  el.innerHTML=`<h3>Activity: Put the Pipeline in Order</h3>
+    <p>Drag the steps below into the correct order, or use the Up/Down buttons.</p>
+    <ol id="actC-slots" class="steps"></ol>
+    <div class="fb" id="actC-fb" aria-live="polite"></div>
+    <button class="btn ghost" id="actC-check" style="margin-top:8px">Check order</button>
+    <button class="btn ghost" id="actC-reset" style="margin-top:8px;margin-left:8px">Shuffle</button>`;
+  const render=()=>{
+    const ol=el.querySelector('#actC-slots');
+    ol.innerHTML=order.map((s,i)=>`<li class="slot on" draggable="true" data-i="${i}">
+      <i>${i+1}</i><span style="flex:1">${s}</span>
+      ${i>0?`<button class="btn ghost" style="padding:4px 10px;font-size:.75rem" data-mv="${i}" data-dir="-1" aria-label="Move up">↑</button>`:''}
+      ${i<order.length-1?`<button class="btn ghost" style="padding:4px 10px;font-size:.75rem" data-mv="${i}" data-dir="1" aria-label="Move down">↓</button>`:''}
+    </li>`).join('');
+    ol.querySelectorAll('[data-mv]').forEach(b=>b.addEventListener('click',()=>{
+      const i=+b.dataset.mv,d=+b.dataset.dir;[order[i],order[i+d]]=[order[i+d],order[i]];el.querySelector('#actC-fb').textContent='';render();
+    }));
+    el.querySelector('#actC-check').onclick=()=>{
+      const ok=order.every((s,i)=>s===steps[i]);
+      el.querySelector('#actC-fb').textContent=ok?'Correct pipeline order! 🎉':'Not quite — try again.';
+    };
+    el.querySelector('#actC-reset').onclick=()=>{order=[...steps].sort(()=>Math.random()-.5);el.querySelector('#actC-fb').textContent='';render();};
+  };
+  render();
+}
+
+function buildActD(el){
+  const features=['Notebook','Canvas','Skills','Connectors','Scheduled Tasks'];
+  const descs={
+    Notebook:'Organise long-context research and generate summaries.',
+    Canvas:'Combine documents, chat, and generated content visually.',
+    Skills:'Add custom capabilities to extend what Gemini can do.',
+    Connectors:'Link Gemini to external data sources and services.',
+    'Scheduled Tasks':'Run Gemini-powered jobs automatically on a schedule.'
+  };
+  const goals=['Plan a research literature review','Build an automated weekly report','Design a custom AI tutor','Create a multimodal content pipeline'];
+  let goal=goals[0],picks=new Set();
+  el.innerHTML=`<h3>Activity: Design Your Own Helper</h3>
+    <p>Pick a goal, tick which Gemini features you'd combine, then see a summary.</p>
+    <select id="actD-goal">${goals.map(g=>`<option>${g}</option>`)}</select>
+    <div class="checks" style="margin-top:10px" id="actD-feats">
+      ${features.map(f=>`<label><input type="checkbox" value="${f}"><span>${f} — <small>${descs[f]}</small></span></label>`).join('')}
+    </div>
+    <button class="btn" id="actD-go" style="margin-top:10px">See my helper design</button>
+    <div class="sum" id="actD-sum" hidden></div>`;
+  el.querySelector('#actD-goal').onchange=e=>goal=e.target.value;
+  el.querySelector('#actD-feats').addEventListener('change',e=>{e.target.checked?picks.add(e.target.value):picks.delete(e.target.value);});
+  el.querySelector('#actD-go').onclick=()=>{
+    if(picks.size===0){el.querySelector('#actD-sum').innerHTML='<p>Tick at least one feature!</p>';el.querySelector('#actD-sum').hidden=false;return;}
+    const list=[...picks].map(f=>`<li><strong>${f}</strong> — ${descs[f]}</li>`).join('');
+    el.querySelector('#actD-sum').innerHTML=`<p><strong>Goal:</strong> ${goal}</p><p><strong>Features you'd use:</strong></p><ul>${list}</ul>
+      <p>Great combination! Think about what data each feature would need and how they'd hand off to each other.</p>`;
+    el.querySelector('#actD-sum').hidden=false;
+  };
+}
+
+function buildActE(el){
+  const agents=['n8n workflow','ChatGPT agent','Claude skill','Hermes Agent'];
+  const bots=['Single-turn Q&A bot','FAQ chatbot on a website','Static knowledge base'];
+  let aBank=[...agents],bBank=[...bots];
+  el.innerHTML=`<h3>Activity: Agent or Chatbot?</h3>
+    <p>Sort each item into the correct column.</p>
+    <div class="cols">
+      <div><h4>Agents</h4><div id="actE-a" style="min-height:60px;border:1.5px dashed var(--line);border-radius:12px;padding:8px;display:grid;gap:6px"></div></div>
+      <div><h4>Chatbots</h4><div id="actE-b" style="min-height:60px;border:1.5px dashed var(--line);border-radius:12px;padding:8px;display:grid;gap:6px"></div></div>
+    </div>
+    <div style="margin-top:10px" id="actE-pool"></div>
+    <div class="fb" id="actE-fb" aria-live="polite"></div>
+    <div style="margin-top:12px"><strong>Reflection:</strong><br>What task would <em>you</em> hand to an agent?<br>
+      <textarea id="actE-refl" rows="2" placeholder="Write one sentence…" aria-label="Your reflection"></textarea>
+    </div>
+    <button class="btn ghost" id="actE-reset" style="margin-top:8px">Reset</button>`;
+  const aSet=new Set(),bSet=new Set();
+  const all=[...agents,...bots].sort(()=>Math.random()-.5);
+  const renderPool=()=>{
+    const pool=el.querySelector('#actE-pool');
+    const rem=all.filter(x=>![...aSet,...bSet].includes(x));
+    pool.innerHTML=rem.map(x=>`<button class="opt" data-x="${encodeURIComponent(x)}">${x}</button>`).join('');
+    pool.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+      if(el.querySelector('#actE-popup')) return;
+      const x=decodeURIComponent(b.dataset.x);
+      const pop=document.createElement('div');
+      pop.id='actE-popup';pop.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:16px';
+      pop.innerHTML=`<div style="background:#fff;border-radius:16px;padding:16px;max-width:280px;text-align:center">
+        <p style="font-weight:700">Sort: <em>${x}</em></p>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn" id="toA">Agent</button>
+          <button class="btn ghost" id="toB">Chatbot</button>
+        </div></div>`;
+      document.body.appendChild(pop);
+      pop.querySelector('#toA').onclick=()=>{aSet.add(x);pop.remove();renderAll();};
+      pop.querySelector('#toB').onclick=()=>{bSet.add(x);pop.remove();renderAll();};
+      pop.addEventListener('click',e=>{if(e.target===pop)pop.remove();});
+    }));
+  };
+  const renderAll=()=>{
+    el.querySelector('#actE-a').innerHTML=[...aSet].map(x=>`<div class="opt ok" style="cursor:default">${x}</div>`).join('');
+    el.querySelector('#actE-b').innerHTML=[...bSet].map(x=>`<div class="opt ok" style="cursor:default">${x}</div>`).join('');
+    renderPool();
+    if(aSet.size+bSet.size===all.length){
+      const correctA=agents.filter(x=>aSet.has(x)).length;const correctB=bots.filter(x=>bSet.has(x)).length;
+      el.querySelector('#actE-fb').textContent=`${correctA+correctB}/${all.length} sorted correctly!`;
+    }
+    el.querySelector('#actE-reset').onclick=()=>{aSet.clear();bSet.clear();el.querySelector('#actE-fb').textContent='';renderAll();};
+  };
+  renderAll();
+}
+
+function buildActF(el){
+  const cards=[
+    {t:'Meta Muse',b:'A tool to explore in class. What creative or generative task might it support?'},
+    {t:'Manus Cue!',b:'A tool to explore in class. What workflow might it fit into?'},
+    {t:'Hark Pro',b:'A tool to explore in class. What problem area might it address?'},
+    {t:'OpenAI Dots',b:'A tool to explore in class. What kind of interaction might it enable?'},
+    {t:'Grok Bot',b:'A tool to explore in class. What tasks might it be good at?'},
+    {t:'Claude Duet',b:'A tool to explore in class. How might it differ from using Claude alone?'},
+  ];
+  let cmp=[];
+  el.innerHTML=`<h3>Activity: Tool Explorer</h3>
+    <p>Flip any card to read about the tool. Then pick <strong>two</strong> tools to compare and write one sentence on what you'd try first.</p>
+    <div class="cards" id="actF-cards"></div>
+    <div style="margin-top:12px" id="actF-cmp"></div>
+    <div class="sum" id="actF-sum" hidden></div>`;
+  const renderCards=()=>{
+    el.querySelector('#actF-cards').innerHTML=cards.map((c,i)=>`
+      <div class="cwrap">
+        <button class="fcard${cmp.includes(i)?' sel':''}" data-i="${i}" aria-label="Flip card for ${c.t}" style="--c:${ISLANDS[5].color}">
+          <div class="in"><div class="f" style="background:${cmp.includes(i)?ISLANDS[5].tint:'#fff'};border-color:${cmp.includes(i)?ISLANDS[5].color:'var(--line)'}">${c.t}</div><div class="b">${c.b}</div></div>
+        </button>
+        <label style="font-size:.8rem;display:flex;gap:4px;align-items:center;cursor:pointer">
+          <input type="checkbox" data-ci="${i}" ${cmp.includes(i)?'checked':''} aria-label="Select ${c.t} for comparison"> Compare
+        </label>
+      </div>`).join('');
+    el.querySelector('#actF-cards').querySelectorAll('.fcard').forEach(b=>{
+      b.addEventListener('click',e=>{if(e.target.closest('input'))return;b.classList.toggle('flipped');});
+    });
+    el.querySelector('#actF-cards').querySelectorAll('input[type=checkbox]').forEach(cb=>{
+      cb.addEventListener('change',()=>{
+        const i=+cb.dataset.ci;
+        if(cb.checked){if(cmp.length<2)cmp.push(i);else{cb.checked=false;return;}}else{cmp=cmp.filter(x=>x!==i);}
+        renderCards();renderCmp();
+      });
+    });
+  };
+  const renderCmp=()=>{
+    const wrap=el.querySelector('#actF-cmp'),sum=el.querySelector('#actF-sum');
+    if(cmp.length<2){wrap.innerHTML='';sum.hidden=true;return;}
+    const [a,b]=cmp.map(i=>cards[i].t);
+    wrap.innerHTML=`<p>Comparing <strong>${a}</strong> and <strong>${b}</strong>. Write one sentence on what you'd try first:</p>
+      <textarea id="actF-txt" rows="2" placeholder="I would try ${a} to…" aria-label="Your comparison sentence"></textarea>
+      <button class="btn" id="actF-save" style="margin-top:8px">Save my thought</button>`;
+    wrap.querySelector('#actF-save').onclick=()=>{
+      const v=wrap.querySelector('#actF-txt').value.trim();
+      if(!v)return;
+      sum.innerHTML=`<p><strong>Your take:</strong> "${v}"</p><p>Great — keep this for your class reflection!</p>`;
+      sum.hidden=false;
+    };
+  };
+  renderCards();
+}
+/* =====================================================================
+   THREE.JS SCENE  –  renderer, islands, camera, controls, stars
+   ===================================================================== */
+
+let renderer, scene, camera, raycaster, clock;
+let islandMeshes = [];   // {mesh, labelEl, data}
+let hovered = null, activeIsland = null;
+let targetQ, targetPos, flyTarget = null, flyProgress = 1;
+const RING_R = 5.2, RING_Y_SPREAD = 0.9;
+const LOW = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function initThree(){
+  const canvas = document.getElementById('gl');
+  try{
+    renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
+  }catch(e){ showFallback(); return false; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = false;  // skip for perf
+  renderer.setClearColor(0x000000, 0);
+  resize();
+  window.addEventListener('resize', resize);
+
+  scene = new THREE.Scene();
+  clock  = new THREE.Clock();
+  raycaster = new THREE.Raycaster();
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 200);
+  camera.position.set(0, 4, 18);
+  targetPos = camera.position.clone();
+  targetQ   = camera.quaternion.clone();
+
+  // Ambient + gentle directional light
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 0.7);
+  sun.position.set(8, 14, 8);
+  scene.add(sun);
+
+  buildStars();
+  buildIslands();
+  initControls(canvas);
+  requestAnimationFrame(animate);
+  return true;
+}
+
+function resize(){
+  if(!renderer) return;
+  renderer.setSize(innerWidth, innerHeight);
+  if(camera){ camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+}
+
+/* ---------- Stars / particles ---------- */
+function buildStars(){
+  if(LOW) return;
+  const count = 400;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  for(let i=0;i<count;i++){
+    const phi = Math.random()*Math.PI*2, theta = Math.random()*Math.PI;
+    const r = 55 + Math.random()*20;
+    pos[i*3]   = r*Math.sin(theta)*Math.cos(phi);
+    pos[i*3+1] = r*Math.cos(theta);
+    pos[i*3+2] = r*Math.sin(theta)*Math.sin(phi);
+    // soft pastel star colors
+    const h=[.6,.65,.7,.75,.8][Math.floor(Math.random()*5)];
+    const c=new THREE.Color().setHSL(h, 0.6, 0.78+Math.random()*.15);
+    col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col,3));
+  const mat = new THREE.PointsMaterial({size:0.18,sizeAttenuation:true,vertexColors:true,transparent:true,opacity:.7});
+  scene.add(new THREE.Points(geo, mat));
+
+  // slow drifting clouds (flat ellipsoids)
+  const cloudGeo = new THREE.SphereGeometry(1,8,5);
+  for(let i=0;i<12;i++){
+    const m = new THREE.Mesh(cloudGeo, new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.18}));
+    m.scale.set(3+Math.random()*3, .4+Math.random()*.3, 1.2+Math.random()*1);
+    m.position.set((Math.random()-.5)*40, (Math.random()-.5)*10-2, (Math.random()-.5)*40);
+    m.userData.drift = {speed:.004+Math.random()*.006, offset:Math.random()*Math.PI*2};
+    scene.add(m);
+  }
+}
+
+/* ---------- Island geometry helpers ---------- */
+function roundedBox(w,h,d,r,segs){
+  const shape = new THREE.Shape();
+  const hw=w/2-r, hh=h/2-r;
+  shape.moveTo(-hw,-h/2); shape.lineTo(hw,-h/2);
+  shape.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);
+  shape.lineTo(w/2,hh); shape.quadraticCurveTo(w/2,h/2,hw,h/2);
+  shape.lineTo(-hw,h/2); shape.quadraticCurveTo(-w/2,h/2,-w/2,hh);
+  shape.lineTo(-w/2,-h/2+r); shape.quadraticCurveTo(-w/2,-h/2,-hw,-h/2);
+  return new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:true,bevelSize:r*.7,bevelThickness:r*.5,bevelSegments:segs});
+}
+
+function mk(geo, color){ return new THREE.Mesh(geo, new THREE.MeshLambertMaterial({color})); }
+
+/* ---------- Build all 6 islands ---------- */
+function buildIslands(){
+  ISLANDS.forEach((data, idx)=>{
+    const angle = (idx / ISLANDS.length) * Math.PI * 2 - Math.PI/2;
+    const x = Math.cos(angle)*RING_R;
+    const z = Math.sin(angle)*RING_R;
+    const y = Math.sin(angle*.7)*RING_Y_SPREAD;
+    const group = buildOneIsland(data, idx);
+    group.position.set(x,y,z);
+    group.userData = { islandIdx: idx, baseY: y };
+    scene.add(group);
+
+    // invisible click sphere
+    const hitSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(1.3, 8, 8),
+      new THREE.MeshBasicMaterial({visible:false})
+    );
+    group.add(hitSphere);
+
+    islandMeshes.push({ group, labelEl:null, data, idx });
+  });
+}
+
+function buildOneIsland(data, idx){
+  const col = new THREE.Color(data.color);
+  const colD = col.clone().offsetHSL(0, -.05, -.12);
+  const colL = col.clone().offsetHSL(0,  .05,  .08);
+  const green = 0x7bcf82;
+  const g = new THREE.Group();
+
+  // main planet body
+  const body = mk(new THREE.SphereGeometry(1,20,16), col.getHex());
+  g.add(body);
+
+  // flat grass cap
+  const cap = mk(new THREE.SphereGeometry(1.01,20,16,0,Math.PI*2,0,Math.PI*.45), green);
+  cap.position.y = 0.03;
+  g.add(cap);
+
+  // small bump hills on top
+  for(let i=0;i<3;i++){
+    const a = (i/3)*Math.PI*2 + idx*0.4;
+    const h = mk(new THREE.SphereGeometry(.28+Math.random()*.12, 8, 6), green);
+    h.position.set(Math.cos(a)*.45, .68, Math.sin(a)*.45);
+    g.add(h);
+  }
+
+  // landmark per island
+  buildLandmark(g, idx, col.getHex(), colL.getHex(), colD.getHex());
+
+  return g;
+}
+
+function buildLandmark(g, idx, c, cL, cD){
+  const cream=0xfffde0, gray=0x9999bb, white=0xffffff;
+  switch(idx){
+    case 0:{ // Island A — tiny camera tower
+      const base=mk(new THREE.CylinderGeometry(.06,.1,.55,8),cD);base.position.set(0,1.33,0);g.add(base);
+      const cam=mk(new THREE.BoxGeometry(.32,.2,.24),gray);cam.position.set(0,1.72,0);g.add(cam);
+      const lens=mk(new THREE.CylinderGeometry(.06,.07,.12,10),0x334455);lens.rotation.x=Math.PI/2;lens.position.set(0,1.72,.19);g.add(lens);
+      break;}
+    case 1:{ // Island B — face-shaped hill
+      const face=mk(new THREE.SphereGeometry(.38,10,8),cream);face.position.set(0,1.44,0);g.add(face);
+      const eL=mk(new THREE.SphereGeometry(.05,6,6),0x334466);eL.position.set(-.12,1.56,.35);g.add(eL);
+      const eR=mk(new THREE.SphereGeometry(.05,6,6),0x334466);eR.position.set( .12,1.56,.35);g.add(eR);
+      const smile=mk(new THREE.TorusGeometry(.1,.025,6,10,Math.PI),0x994444);smile.position.set(0,1.33,.36);smile.rotation.x=.3;g.add(smile);
+      break;}
+    case 2:{ // Island C — painter's easel
+      const post=mk(new THREE.CylinderGeometry(.03,.03,.7,6),0x8B6914);post.position.set(0,1.5,0);g.add(post);
+      const canvas2=mk(new THREE.BoxGeometry(.38,.26,.03),white);canvas2.position.set(0,1.72,0);canvas2.rotation.x=-.18;g.add(canvas2);
+      // colorful paint blobs
+      [[.08,0x7ec8e3],[-.08,0xffb347],[0,0xb57bee]].forEach(([xo,col])=>{
+        const dot=mk(new THREE.SphereGeometry(.04,5,5),col);dot.position.set(xo,1.72,.04);g.add(dot);
+      });
+      break;}
+    case 3:{ // Island D — gemstone / crystal
+      const gem=mk(new THREE.OctahedronGeometry(.32,0),cL);gem.position.set(0,1.6,0);g.add(gem);
+      const glow=mk(new THREE.SphereGeometry(.28,8,8),0xddbbff);glow.material.transparent=true;glow.material.opacity=.35;glow.position.set(0,1.6,0);g.add(glow);
+      break;}
+    case 4:{ // Island E — robot hut
+      const body=mk(new THREE.BoxGeometry(.38,.36,.38),gray);body.position.set(0,1.5,0);g.add(body);
+      const head=mk(new THREE.BoxGeometry(.28,.22,.28),0x8899bb);head.position.set(0,1.82,0);g.add(head);
+      const eL=mk(new THREE.SphereGeometry(.045,5,5),cL);eL.position.set(-.07,1.86,.15);g.add(eL);
+      const eR=mk(new THREE.SphereGeometry(.045,5,5),cL);eR.position.set( .07,1.86,.15);g.add(eR);
+      break;}
+    case 5:{ // Island F — rocket ship
+      const nose=mk(new THREE.ConeGeometry(.12,.35,8),cL);nose.position.set(0,1.95,0);g.add(nose);
+      const body=mk(new THREE.CylinderGeometry(.1,.1,.4,8),c);body.position.set(0,1.6,0);g.add(body);
+      const fin1=mk(new THREE.BoxGeometry(.25,.18,.04),cD);fin1.position.set(0,1.4,.13);fin1.rotation.y=0;g.add(fin1);
+      const fin2=mk(new THREE.BoxGeometry(.04,.18,.25),cD);fin2.position.set(0,1.4,0);g.add(fin2);
+      break;}
+  }
+}
+
+/* ---------- Orbit / touch controls ---------- */
+let isDragging=false, lastMouse={x:0,y:0};
+let spherical = {theta:-0.6, phi:1.1, radius:18};
+let targetSpherical = {...spherical};
+
+function initControls(canvas){
+  canvas.addEventListener('mousedown', e=>{ if(e.button!==0)return; isDragging=true;lastMouse={x:e.clientX,y:e.clientY};canvas.classList.add('grabbing'); });
+  window.addEventListener('mouseup', ()=>{ isDragging=false;canvas.classList.remove('grabbing'); });
+  window.addEventListener('mousemove', e=>{
+    if(isDragging){
+      targetSpherical.theta -= (e.clientX-lastMouse.x)*0.007;
+      targetSpherical.phi   -= (e.clientY-lastMouse.y)*0.007;
+      targetSpherical.phi    = Math.max(.3,Math.min(Math.PI*.8,targetSpherical.phi));
+      lastMouse={x:e.clientX,y:e.clientY};
+      flyProgress=1; flyTarget=null; activeIsland=null;
+      document.getElementById('backBtn').hidden=true;
+      closePanel();
+    } else updateHover(e.clientX, e.clientY);
+  });
+  canvas.addEventListener('click', e=>{ handleClick(e.clientX, e.clientY); });
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    targetSpherical.radius = Math.max(5, Math.min(28, targetSpherical.radius + e.deltaY*0.025));
+  },{passive:false});
+  // touch
+  let touches=[], tDist=0;
+  canvas.addEventListener('touchstart', e=>{
+    touches=e.touches;
+    if(e.touches.length===1){ isDragging=true;lastMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};}
+    if(e.touches.length===2){ tDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+  },{passive:true});
+  canvas.addEventListener('touchend', e=>{if(e.touches.length===0)isDragging=false;});
+  canvas.addEventListener('touchmove', e=>{
+    if(e.touches.length===1&&isDragging){
+      const dx=e.touches[0].clientX-lastMouse.x, dy=e.touches[0].clientY-lastMouse.y;
+      targetSpherical.theta-=dx*.007; targetSpherical.phi-=dy*.007;
+      targetSpherical.phi=Math.max(.3,Math.min(Math.PI*.8,targetSpherical.phi));
+      lastMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};
+      flyProgress=1;flyTarget=null;activeIsland=null;document.getElementById('backBtn').hidden=true;closePanel();
+    }
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      targetSpherical.radius=Math.max(5,Math.min(28,targetSpherical.radius-(d-tDist)*.04));
+      tDist=d;
+    }
+  },{passive:true});
+}
+
+/* ---------- Hover / click ---------- */
+function getIntersect(cx,cy){
+  const rect=renderer.domElement.getBoundingClientRect();
+  const ndc=new THREE.Vector2(((cx-rect.left)/rect.width)*2-1, -((cy-rect.top)/rect.height)*2+1);
+  raycaster.setFromCamera(ndc, camera);
+  const groups=islandMeshes.map(im=>im.group);
+  const hits=raycaster.intersectObjects(groups, true);
+  if(!hits.length)return null;
+  const obj=hits[0].object;
+  let cur=obj;
+  while(cur&&!cur.userData.hasOwnProperty('islandIdx'))cur=cur.parent;
+  return cur?islandMeshes.find(im=>im.idx===cur.userData.islandIdx):null;
+}
+
+function updateHover(cx,cy){
+  const im=getIntersect(cx,cy);
+  if(hovered&&hovered!==im) setGlow(hovered,false);
+  if(im&&im!==hovered){ setGlow(im,true); document.getElementById('gl').classList.add('pointer');}
+  else if(!im)         { document.getElementById('gl').classList.remove('pointer'); }
+  hovered=im;
+  islandMeshes.forEach(x=>{ if(x.labelEl)x.labelEl.classList.toggle('hot',x===im); });
+}
+
+function setGlow(im, on){
+  im.group.traverse(m=>{
+    if(m.isMesh&&!m.material.visible===false){
+      if(on){ m.material.emissive=m.material.emissive||new THREE.Color();m.material.emissive.setHex(0x444466);}
+      else  { if(m.material.emissive)m.material.emissive.setHex(0x000000);}
+    }
+  });
+}
+
+function handleClick(cx,cy){
+  const im=getIntersect(cx,cy);
+  if(im) flyToIsland(im);
+}
+
+/* ---------- Fly-to ---------- */
+function flyToIsland(im){
+  if(flyProgress<1&&flyTarget===im) return;
+  flyTarget=im; flyProgress=0;
+  activeIsland=im;
+  document.getElementById('backBtn').hidden=false;
+  announce('Opening '+im.data.label);
+  // kick off label highlight
+  islandMeshes.forEach(x=>{if(x.labelEl)x.labelEl.classList.toggle('active',x===im);});
+  // compute camera position: front of island
+  const wp=new THREE.Vector3();
+  im.group.getWorldPosition(wp);
+  const offset=wp.clone().normalize().multiplyScalar(4).add(new THREE.Vector3(0,1.5,0));
+  flyTarget.camPos=wp.clone().add(offset);
+  flyTarget.camLookAt=wp.clone().add(new THREE.Vector3(0,.5,0));
+  openPanel(im.data);
+}
+
+function backToOverview(){
+  flyTarget=null; flyProgress=1; activeIsland=null;
+  document.getElementById('backBtn').hidden=true;
+  islandMeshes.forEach(x=>{if(x.labelEl)x.labelEl.classList.remove('active');});
+  closePanel();
+  announce('Returned to overview');
+}
+
+/* ---------- Main loop ---------- */
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta(), t=clock.getElapsedTime();
+
+  // cloud drift
+  if(!LOW){
+    scene.children.forEach(obj=>{
+      if(obj.isPoints)return;
+      if(obj.userData.drift){
+        const d=obj.userData.drift;
+        obj.position.x+=d.speed*Math.sin(t*d.speed+d.offset);
+        obj.position.z+=d.speed*Math.cos(t*d.speed*0.7+d.offset);
+      }
+    });
+  }
+
+  // island bob
+  if(!LOW){
+    islandMeshes.forEach((im,i)=>{
+      const bob=Math.sin(t*.7+i*1.1)*.12;
+      im.group.position.y=im.group.userData.baseY+bob;
+      im.group.rotation.y+=.0015;
+    });
+  }
+
+  // camera fly-to
+  if(flyTarget&&flyProgress<1){
+    flyProgress=Math.min(1, flyProgress+dt*0.9);
+    const e=easeInOut(flyProgress);
+    camera.position.lerpVectors(camera.position, flyTarget.camPos, e*.07+.001);
+    const look=new THREE.Vector3().lerpVectors(camera.position, flyTarget.camLookAt, .1);
+    camera.lookAt(flyTarget.camLookAt);
+  } else if(!flyTarget){
+    // orbit controls smooth follow
+    spherical.theta += (targetSpherical.theta-spherical.theta)*.07;
+    spherical.phi   += (targetSpherical.phi  -spherical.phi  )*.07;
+    spherical.radius+= (targetSpherical.radius-spherical.radius)*.07;
+    const sinPhi=Math.sin(spherical.phi);
+    camera.position.set(
+      spherical.radius*sinPhi*Math.cos(spherical.theta),
+      spherical.radius*Math.cos(spherical.phi),
+      spherical.radius*sinPhi*Math.sin(spherical.theta)
+    );
+    camera.lookAt(0,0,0);
+  }
+
+  updateLabels();
+  renderer.render(scene, camera);
+}
+
+function easeInOut(t){ return t<.5?2*t*t:1-(-2*t+2)**2/2; }
+
+/* ---------- CSS label positioning ---------- */
+function updateLabels(){
+  if(!renderer||!camera)return;
+  const w=innerWidth,h=innerHeight;
+  islandMeshes.forEach(im=>{
+    if(!im.labelEl)return;
+    const wp=new THREE.Vector3();
+    im.group.getWorldPosition(wp);
+    const sp=wp.clone().project(camera);
+    if(sp.z>1){im.labelEl.style.display='none';return;}
+    const x=(sp.x*.5+.5)*w, y=(-.5*sp.y+.5)*h;
+    im.labelEl.style.display='block';
+    im.labelEl.style.transform=`translate(${x-23}px,${y-23}px)`;
+  });
+}
+
+/* ---------- Build label elements ---------- */
+function buildLabels(){
+  const container=document.getElementById('labels');
+  ISLANDS.forEach((data,i)=>{
+    const btn=document.createElement('button');
+    btn.className='label';
+    btn.setAttribute('aria-label',`${data.label}: ${data.unit} — ${data.title}`);
+    btn.setAttribute('tabindex','0');
+    btn.style.setProperty('--c',data.color);
+    btn.innerHTML=`<span class="chip">${data.id}</span><span class="name">${data.label}: ${data.title}</span>`;
+    btn.addEventListener('click',()=>flyToIsland(islandMeshes[i]));
+    btn.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();flyToIsland(islandMeshes[i]);}});
+    container.appendChild(btn);
+    islandMeshes[i].labelEl=btn;
+  });
+}
+
+function showFallback(){
+  document.getElementById('fallback').hidden=false;
+  document.getElementById('textList').style.display='block';
+}
+/* =====================================================================
+   PANEL  +  TEXT-ONLY LIST  +  KEYBOARD NAVIGATION  +  ACCESSIBILITY
+   ===================================================================== */
+
+/* ---------- Panel open / close ---------- */
+function openPanel(data){
+  const panel=document.getElementById('panel');
+  const body=document.getElementById('pBody');
+  panel.style.setProperty('--tint',data.tint);
+
+  const lessons=data.lessons.map(l=>`
+    <li>
+      <span class="lnum">${l.n}</span>
+      <span class="ltitle">${l.t}</span>
+      <span class="ldesc">${l.d}</span>
+    </li>`).join('');
+
+  body.innerHTML=`
+    <div class="p-head">
+      <div>
+        <span class="badge" style="--tint:${data.tint}">${data.unit}</span>
+        <h2 id="pTitle" tabindex="-1">${data.label} — ${data.title}</h2>
+        <p class="intro">${data.intro}</p>
+      </div>
+      <button class="x" aria-label="Close panel" id="panelClose">✕</button>
+    </div>
+    <h3>Lessons</h3>
+    <ul class="lessons" aria-label="Lessons in this unit">${lessons}</ul>
+    <div class="act" id="actWrap" aria-label="Interactive activity"></div>
+    <div class="p-nav">
+      <button class="btn ghost" id="panelPrev">← Previous island</button>
+      <button class="btn ghost" id="panelNext">Next island →</button>
+    </div>`;
+
+  document.getElementById('panelClose').addEventListener('click', closePanel);
+  document.getElementById('panelPrev').addEventListener('click', ()=>navigateIsland(-1));
+  document.getElementById('panelNext').addEventListener('click', ()=>navigateIsland(+1));
+
+  // build activity
+  const actWrap=body.querySelector('#actWrap');
+  const builders={match:buildActA, pick:buildActB, pipeline:buildActC, helper:buildActD, sort:buildActE, flip:buildActF};
+  if(builders[data.act]) builders[data.act](actWrap);
+
+  panel.classList.add('open');
+  document.body.classList.add('panel-open');
+  panel.setAttribute('aria-expanded','true');
+
+  // focus title after transition
+  setTimeout(()=>{
+    const h=document.getElementById('pTitle');
+    if(h) h.focus();
+  }, 580);
+}
+
+function closePanel(){
+  const panel=document.getElementById('panel');
+  panel.classList.remove('open');
+  document.body.classList.remove('panel-open');
+  panel.setAttribute('aria-expanded','false');
+  if(activeIsland){
+    // return focus to the island's label button
+    const lbl=activeIsland.labelEl;
+    if(lbl) setTimeout(()=>lbl.focus(), 560);
+  }
+}
+
+function navigateIsland(dir){
+  if(!activeIsland) return;
+  const idx=(activeIsland.idx + dir + ISLANDS.length) % ISLANDS.length;
+  flyToIsland(islandMeshes[idx]);
+}
+
+/* ---------- Text-only list ---------- */
+function buildTextList(){
+  const ul=document.getElementById('textUl');
+  ISLANDS.forEach(data=>{
+    const li=document.createElement('li');
+    const btn=document.createElement('button');
+    btn.className='tl-btn';
+    btn.setAttribute('aria-label',`Open ${data.label}: ${data.title}`);
+    btn.style.setProperty('--c',data.color);
+    btn.innerHTML=`
+      <span class="l">${data.id}</span>
+      <b>${data.label} — ${data.title}</b>
+      <span>${data.unit} · ${data.lessons.length} lessons</span>`;
+    btn.addEventListener('click',()=>{
+      // switch to 3D view if possible, then fly
+      if(!document.body.classList.contains('no3d')){
+        hideTextList();
+        setTimeout(()=>flyToIsland(islandMeshes[ISLANDS.indexOf(data)]),100);
+      } else {
+        // show inline panel in text mode
+        openPanel(data);
+      }
+    });
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+function showTextList(){
+  document.body.classList.add('no3d');
+  document.getElementById('textList').style.display='block';
+  document.getElementById('skipBtn').setAttribute('aria-pressed','true');
+  document.getElementById('textList').focus();
+}
+function hideTextList(){
+  document.body.classList.remove('no3d');
+  document.getElementById('textList').style.display='none';
+  document.getElementById('skipBtn').setAttribute('aria-pressed','false');
+}
+
+/* ---------- Back button ---------- */
+document.getElementById('backBtn').addEventListener('click', backToOverview);
+
+/* ---------- Skip 3D button ---------- */
+document.getElementById('skipBtn').addEventListener('click',()=>{
+  if(document.body.classList.contains('no3d')) hideTextList();
+  else showTextList();
+});
+
+/* ---------- Keyboard: global Esc / arrows ---------- */
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('panel').classList.contains('open')){
+      closePanel();
+    } else if(activeIsland){
+      backToOverview();
+    }
+  }
+  // Tab-based: handled naturally by DOM order
+});
+
+/* ---------- Screen-reader announce helper ---------- */
+function announce(msg){
+  const el=document.getElementById('live');
+  el.textContent='';
+  requestAnimationFrame(()=>el.textContent=msg);
+}
+
+/* ---------- Hint dismiss ---------- */
+function initHint(){
+  const hint=document.getElementById('hint');
+  let seen=false;
+  try{ seen=!!localStorage.getItem('pfai-hint'); }catch(e){}
+  if(seen){ hint.hidden=true; return; }
+  document.getElementById('hintOk').addEventListener('click',()=>{
+    hint.classList.add('fade');
+    setTimeout(()=>hint.hidden=true, 800);
+    try{ localStorage.setItem('pfai-hint','1'); }catch(e){}
+  });
+  // auto-dismiss after 9 s
+  setTimeout(()=>{
+    if(!hint.hidden){ hint.classList.add('fade'); setTimeout(()=>hint.hidden=true,800); }
+  },9000);
+}
+/* =====================================================================
+   AMBIENT MUSIC  (Web Audio API — pentatonic pad + gentle melody)
+   ===================================================================== */
+let audioCtx=null, masterGain=null, musicOn=false, scheduledNodes=[];
+
+function initAudio(){
+  if(audioCtx)return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  masterGain=audioCtx.createGain();
+  masterGain.gain.value=0.35;
+  masterGain.connect(audioCtx.destination);
+}
+
+function startMusic(){
+  initAudio();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(musicOn)return;
+  musicOn=true;
+  playPad();
+  playMelody();
+}
+function stopMusic(){
+  musicOn=false;
+  scheduledNodes.forEach(n=>{try{n.stop();}catch(e){}});
+  scheduledNodes=[];
+  if(masterGain) masterGain.gain.setTargetAtTime(0,audioCtx.currentTime,.3);
+  setTimeout(()=>{if(masterGain)masterGain.gain.value=.35;},1200);
+}
+
+// Soft pad chord (sine waves, slow LFO)
+function playPad(){
+  if(!musicOn||!audioCtx)return;
+  const freqs=[261.63,329.63,392,523.25]; // C E G C  (pentatonic)
+  freqs.forEach(f=>{
+    const osc=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    const lfo=audioCtx.createOscillator();
+    const lfoG=audioCtx.createGain();
+    osc.type='sine'; osc.frequency.value=f;
+    lfo.type='sine'; lfo.frequency.value=.08+Math.random()*.04;
+    lfoG.gain.value=f*.012;
+    lfo.connect(lfoG); lfoG.connect(osc.frequency);
+    g.gain.value=0;
+    osc.connect(g); g.connect(masterGain);
+    osc.start(); lfo.start();
+    g.gain.setTargetAtTime(.025,audioCtx.currentTime,.8);
+    // schedule next pad in 12 s
+    scheduledNodes.push(osc,lfo);
+  });
+  setTimeout(()=>{ if(musicOn)playPad(); }, 12000);
+}
+
+// Gentle pentatonic melody
+function playMelody(){
+  if(!musicOn||!audioCtx)return;
+  // C pentatonic: C D E G A C' D'
+  const scale=[261.63,293.66,329.63,392,440,523.25,587.33];
+  const noteLen=1.1, noteDur=.9;
+  const seq=[0,2,4,3,5,2,4,6,5,3,2,0];
+  let t=audioCtx.currentTime+.1;
+  seq.forEach((si,i)=>{
+    if(!musicOn)return;
+    const f=scale[si];
+    const osc=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    const filter=audioCtx.createBiquadFilter();
+    filter.type='lowpass';filter.frequency.value=1200;
+    osc.type='triangle'; osc.frequency.value=f;
+    osc.connect(filter); filter.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(.055,t+.04);
+    g.gain.setTargetAtTime(0,t+noteDur*.5,.3);
+    osc.start(t); osc.stop(t+noteDur+.4);
+    scheduledNodes.push(osc);
+    t+=noteLen;
+  });
+  // loop after total duration
+  setTimeout(()=>{ if(musicOn)playMelody(); }, seq.length*noteLen*1000+500);
+}
+
+function setVolume(v){
+  if(!masterGain)return;
+  masterGain.gain.setTargetAtTime(v/100*.5,audioCtx.currentTime,.05);
+}
+
+/* ---------- Music button wiring ---------- */
+document.getElementById('musicBtn').addEventListener('click',()=>{
+  if(document.body.classList.contains('lowstim'))return;
+  if(musicOn){ stopMusic(); document.getElementById('musicBtn').setAttribute('aria-pressed','false'); document.getElementById('musicTxt').textContent='Music: Off'; }
+  else       { startMusic();document.getElementById('musicBtn').setAttribute('aria-pressed','true'); document.getElementById('musicTxt').textContent='Music: On'; }
+});
+document.getElementById('vol').addEventListener('input',e=>setVolume(+e.target.value));
+
+/* =====================================================================
+   LOW-STIMULATION MODE
+   ===================================================================== */
+let lowMode=false;
+
+function setLowMode(on){
+  lowMode=on;
+  document.body.classList.toggle('lowstim',on);
+  document.getElementById('lowBtn').setAttribute('aria-checked',String(on));
+  if(on){ stopMusic(); document.getElementById('musicBtn').disabled=true; document.getElementById('musicTxt').textContent='Music: Off';}
+  else  { document.getElementById('musicBtn').disabled=false; }
+  try{ localStorage.setItem('pfai-low',on?'1':''); }catch(e){}
+}
+
+document.getElementById('lowBtn').addEventListener('click',()=>setLowMode(!lowMode));
+
+// Respect OS prefers-reduced-motion
+function checkPrefersReducedMotion(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) setLowMode(true);
+}
+
+// Persist low-stim preference
+function loadPrefs(){
+  try{
+    const v=localStorage.getItem('pfai-low');
+    if(v==='1') setLowMode(true);
+  }catch(e){}
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+function main(){
+  checkPrefersReducedMotion();
+  loadPrefs();
+
+  const ok=initThree();
+  if(ok){
+    buildLabels();
+  } else {
+    showFallback();
+  }
+
+  buildTextList();
+  initHint();
+
+  // Skip-link target
+  document.getElementById('skipLink').href='#textList';
+}
+
+document.addEventListener('DOMContentLoaded', main);
+</script>
+</body>
+</html>
