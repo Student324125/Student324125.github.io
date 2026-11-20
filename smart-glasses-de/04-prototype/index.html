@@ -1,478 +1,762 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AuraVision G1 — Smart Glasses for the German Market</title>
+  <title>Industrielle Smart Glasses — DSGVO-konform by Design</title>
   <style>
-    /* Reset and Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.6;
-      color: #1a1a1a;
-      background-color: #f8fafc;
-    }
-    a {
-      text-decoration: none;
-      color: inherit;
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-900: #0a0f1e;
+      --navy-800: #0f1729;
+      --navy-700: #162040;
+      --navy-600: #1e2d55;
+      --navy-500: #253669;
+      --blue-400: #3b6fd4;
+      --blue-300: #5b8de8;
+      --blue-200: #8db3f0;
+      --teal-400: #2ab8b0;
+      --teal-300: #3dd9d0;
+      --grey-100: #f4f6fa;
+      --grey-200: #e2e7f0;
+      --grey-400: #9ba8c0;
+      --grey-600: #5c6b88;
+      --white: #ffffff;
+      --text-primary: #e8ecf5;
+      --text-secondary: #9ba8c0;
+      --card-bg: #131c35;
+      --card-border: #1e2d55;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow-card: 0 2px 16px rgba(0,0,0,0.35);
     }
 
-    /* Container */
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: var(--navy-900);
+      color: var(--text-primary);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    /* ── Typography ── */
+    h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; }
+    h1 { font-size: clamp(1.9rem, 4vw, 3rem); }
+    h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); }
+    h3 { font-size: clamp(1.1rem, 2vw, 1.3rem); font-weight: 600; }
+    p  { color: var(--text-secondary); }
+
+    a { color: var(--blue-300); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout helpers ── */
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
-    /* Navigation Bar */
+    section { padding: 80px 0; }
+
+    /* ── Navbar ── */
     header {
-      background-color: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
+      background: var(--navy-900);
+      border-bottom: 1px solid var(--navy-700);
       position: sticky;
       top: 0;
       z-index: 100;
     }
+
     .nav-inner {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      height: 70px;
-    }
-    .logo {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: #0f172a;
-    }
-    .logo span {
-      color: #059669;
-    }
-    .nav-cta {
-      background-color: #0f172a;
-      color: #ffffff;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: background-color 0.2s;
-    }
-    .nav-cta:hover {
-      background-color: #1e293b;
-    }
-
-    /* Hero Section */
-    .hero {
-      padding: 80px 0 60px;
-      text-align: center;
-      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .badge {
-      display: inline-block;
-      padding: 6px 14px;
-      background-color: #ecfdf5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-      letter-spacing: 0.3px;
-    }
-    .hero h1 {
-      font-size: 2.75rem;
-      line-height: 1.2;
-      font-weight: 800;
-      color: #0f172a;
-      max-width: 850px;
-      margin: 0 auto 20px;
-      letter-spacing: -1px;
-    }
-    .hero p {
-      font-size: 1.2rem;
-      color: #475569;
-      max-width: 720px;
-      margin: 0 auto 36px;
-    }
-    .hero-actions {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .btn-primary {
-      background-color: #059669;
-      color: #ffffff;
-      padding: 14px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
-      transition: all 0.2s;
-    }
-    .btn-primary:hover {
-      background-color: #047857;
-      transform: translateY(-1px);
-    }
-    .btn-secondary {
-      background-color: #ffffff;
-      color: #1e293b;
-      padding: 14px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      border: 1px solid #cbd5e1;
-      transition: background-color 0.2s;
-    }
-    .btn-secondary:hover {
-      background-color: #f8fafc;
-    }
-
-    /* Key Specs Bar */
-    .specs-bar {
-      padding: 30px 0;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .specs-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      text-align: center;
-    }
-    .spec-item h4 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .spec-item p {
-      font-size: 0.9rem;
-      color: #64748b;
-      font-weight: 500;
-    }
-
-    /* Selling Points Section */
-    .features {
-      padding: 80px 0;
-    }
-    .section-header {
-      text-align: center;
-      margin-bottom: 50px;
-    }
-    .section-header h2 {
-      font-size: 2.1rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
-    }
-    .section-header p {
-      font-size: 1.1rem;
-      color: #64748b;
-      max-width: 600px;
+      justify-content: space-between;
+      padding: 16px 24px;
+      max-width: 1100px;
       margin: 0 auto;
     }
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 28px;
+
+    .nav-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.03em;
     }
-    .feature-card {
-      background-color: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 36px 32px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-      transition: transform 0.2s, box-shadow 0.2s;
+
+    .nav-logo span {
+      color: var(--teal-400);
     }
-    .feature-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+
+    .nav-cta {
+      background: var(--blue-400);
+      color: var(--white);
+      padding: 9px 20px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.2s;
     }
-    .feature-icon {
+
+    .nav-cta:hover { background: var(--blue-300); text-decoration: none; }
+
+    /* ── Hero ── */
+    #hero {
+      background: linear-gradient(160deg, var(--navy-800) 0%, var(--navy-900) 60%);
+      padding: 100px 0 90px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: "";
+      position: absolute;
+      top: -120px;
+      right: -180px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59,111,212,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    #hero::after {
+      content: "";
+      position: absolute;
+      bottom: -80px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(42,184,176,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      background-color: #f0fdf4;
-      color: #16a34a;
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-bottom: 18px;
-    }
-    .feature-card h3 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 12px;
-    }
-    .feature-card p {
-      color: #475569;
-      font-size: 0.98rem;
-      line-height: 1.6;
+      gap: 8px;
+      background: rgba(59,111,212,0.15);
+      border: 1px solid rgba(59,111,212,0.3);
+      color: var(--blue-200);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 28px;
     }
 
-    /* Comparison Table Section */
-    .comparison {
-      padding: 60px 0 80px;
-      background-color: #ffffff;
-      border-top: 1px solid #e2e8f0;
-      border-bottom: 1px solid #e2e8f0;
+    .hero-eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: var(--teal-400);
+      border-radius: 50%;
     }
-    .table-wrapper {
-      overflow-x: auto;
-      margin-top: 36px;
+
+    #hero h1 {
+      max-width: 760px;
+      color: var(--white);
+      margin-bottom: 24px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
+
+    .hero-sub {
+      max-width: 680px;
+      font-size: 1.1rem;
+      color: var(--grey-400);
+      margin-bottom: 40px;
+      line-height: 1.75;
     }
-    th, td {
-      padding: 16px 20px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 0.95rem;
-    }
-    th {
-      background-color: #f8fafc;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    tr.highlight {
-      background-color: #f0fdf4;
+
+    .hero-sub strong {
+      color: var(--text-primary);
       font-weight: 600;
     }
-    tr.highlight td {
-      color: #065f46;
-      border-color: #bbf7d0;
-    }
 
-    /* CTA Section */
-    .cta-section {
-      padding: 80px 0;
-      text-align: center;
-      background-color: #0f172a;
-      color: #ffffff;
-    }
-    .cta-box h2 {
-      font-size: 2.25rem;
-      font-weight: 800;
-      margin-bottom: 16px;
-      letter-spacing: -0.5px;
-    }
-    .cta-box p {
-      font-size: 1.15rem;
-      color: #94a3b8;
-      max-width: 600px;
-      margin: 0 auto 36px;
-    }
-    .cta-box .btn-primary {
-      padding: 16px 36px;
-      font-size: 1.1rem;
-    }
-
-    /* Footer */
-    footer {
-      background-color: #090d16;
-      color: #64748b;
-      padding: 40px 0;
-      font-size: 0.88rem;
-      border-top: 1px solid #1e293b;
-    }
-    .footer-inner {
+    .hero-buttons {
       display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+
+    .btn-primary {
+      background: var(--blue-400);
+      color: var(--white);
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 700;
+      display: inline-block;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--blue-300); text-decoration: none; transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--blue-200);
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      display: inline-block;
+      border: 1px solid var(--navy-500);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover { border-color: var(--blue-300); color: var(--white); text-decoration: none; }
+
+    .hero-slogan {
+      display: inline-block;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--teal-400);
+      font-weight: 500;
+      border-left: 3px solid var(--teal-400);
+      padding-left: 14px;
+    }
+
+    /* ── Trust bar ── */
+    .trust-bar {
+      background: var(--navy-800);
+      border-top: 1px solid var(--navy-700);
+      border-bottom: 1px solid var(--navy-700);
+      padding: 20px 0;
+    }
+
+    .trust-bar-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 32px;
+      justify-content: center;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--grey-400);
+      white-space: nowrap;
+    }
+
+    .trust-item .icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      fill: var(--teal-400);
+    }
+
+    /* ── Section headers ── */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal-400);
+      margin-bottom: 10px;
+    }
+
+    .section-heading {
+      color: var(--white);
+      margin-bottom: 14px;
+    }
+
+    .section-sub {
+      max-width: 580px;
+      color: var(--grey-400);
+      font-size: 1.05rem;
+      margin-bottom: 48px;
+    }
+
+    /* ── Benefits ── */
+    #benefits { background: var(--navy-900); }
+
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .benefit-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .benefit-card:hover {
+      border-color: var(--blue-400);
+      transform: translateY(-3px);
+    }
+
+    .benefit-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(59,111,212,0.15);
+      border: 1px solid rgba(59,111,212,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .benefit-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--blue-300);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .benefit-card h3 { color: var(--white); }
+
+    .benefit-card p { font-size: 0.93rem; line-height: 1.7; color: var(--grey-400); }
+
+    .benefit-result {
+      margin-top: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--teal-400);
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+    }
+
+    .benefit-result::before {
+      content: "→";
+      flex-shrink: 0;
+    }
+
+    /* ── Social proof ── */
+    #social-proof {
+      background: var(--navy-800);
+      border-top: 1px solid var(--navy-700);
+      border-bottom: 1px solid var(--navy-700);
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 24px;
+    }
+
+    .testimonial-card {
+      background: var(--navy-900);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .quote-mark {
+      font-size: 3.5rem;
+      line-height: 1;
+      color: var(--blue-400);
+      opacity: 0.4;
+      font-family: Georgia, serif;
+      position: absolute;
+      top: 16px;
+      left: 22px;
+      pointer-events: none;
+    }
+
+    .testimonial-text {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--text-primary);
+      font-style: italic;
+      padding-top: 18px;
+    }
+
+    .testimonial-attribution {
+      font-size: 0.82rem;
+      color: var(--grey-400);
+      font-weight: 600;
+      border-top: 1px solid var(--navy-600);
+      padding-top: 14px;
+    }
+
+    .testimonial-attribution span {
+      display: block;
+      color: var(--grey-600);
+      font-weight: 400;
+      font-size: 0.78rem;
+      margin-top: 2px;
+    }
+
+    .placeholder-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(255,180,0,0.1);
+      border: 1px solid rgba(255,180,0,0.3);
+      color: #f0b429;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    /* ── Features ── */
+    #features { background: var(--navy-900); }
+
+    .features-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    @media (max-width: 700px) {
+      .features-layout { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    .features-intro p { margin-bottom: 28px; color: var(--grey-400); line-height: 1.75; }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      font-size: 0.93rem;
+      color: var(--text-primary);
+      transition: border-color 0.2s;
+    }
+
+    .feature-list li:hover { border-color: var(--navy-500); }
+
+    .feature-list li::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal-400);
+      margin-top: 7px;
+      flex-shrink: 0;
+    }
+
+    /* ── CTA ── */
+    #cta {
+      background: linear-gradient(140deg, var(--navy-700) 0%, var(--navy-800) 100%);
+      border-top: 1px solid var(--navy-600);
+    }
+
+    .cta-inner {
+      max-width: 720px;
+    }
+
+    .cta-inner h2 { color: var(--white); margin-bottom: 18px; }
+
+    .cta-inner p { font-size: 1.05rem; color: var(--grey-400); margin-bottom: 36px; line-height: 1.75; }
+
+    .cta-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .cta-fine {
+      font-size: 0.82rem;
+      color: var(--grey-600);
+      max-width: 560px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy-900);
+      border-top: 1px solid var(--navy-700);
+      padding: 32px 0;
+      text-align: center;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .footer-note {
-      color: #94a3b8;
     }
 
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 2rem;
-      }
-      .specs-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-      }
-      .feature-grid {
-        grid-template-columns: 1fr;
-      }
-      .footer-inner {
-        flex-direction: column;
-        text-align: center;
-      }
+    .footer-brand {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--grey-600);
+    }
+
+    .footer-brand span { color: var(--teal-400); }
+
+    .footer-note {
+      font-size: 0.78rem;
+      color: var(--grey-600);
+      max-width: 420px;
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      section { padding: 56px 0; }
+      #hero { padding: 60px 0 56px; }
+      .hero-buttons { gap: 10px; }
+      .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .footer-note { text-align: left; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Navigation Bar -->
-  <header>
-    <div class="container nav-inner">
-      <div class="logo">AuraVision <span>G1</span></div>
-      <a href="#preorder" class="nav-cta">Pre-Order</a>
+<!-- ── Navigation ── -->
+<header>
+  <div class="nav-inner">
+    <div class="nav-logo">Vision<span>Works</span> Industrial</div>
+    <a href="#cta" class="nav-cta">Gespräch vereinbaren</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── Hero ── -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-eyebrow">Enterprise Smart Glasses · Germany</div>
+      <h1>Industrielle Smart Glasses — entwickelt für die Anforderungen des deutschen Mittelstands.</h1>
+      <p class="hero-sub">
+        <strong>SAP-ready ab Tag eins.</strong> KI-Assistent auf Deutsch.
+        DSGVO-konform by Design — nicht nachträglich eingefügt.<br>
+        Steigern Sie Effizienz in Lager, Produktion und Wartung, ohne Kompromisse bei Datenschutz oder Compliance einzugehen.
+      </p>
+      <div class="hero-buttons">
+        <a href="#cta" class="btn-primary">Gespräch vereinbaren</a>
+        <a href="#cta" class="btn-secondary">Demo anfordern</a>
+      </div>
+      <div class="hero-slogan">„Gebaut für die deutsche Industrie. Von Anfang an DSGVO-konform."</div>
     </div>
-  </header>
+  </section>
 
-  <main>
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <div class="badge">GDPR Compliant &bull; 100% Camera-Free &bull; German Certified</div>
-        <h1>The Smart Glasses Built for the German Boardroom and Beyond</h1>
-        <p>Experience instant teleprompting, live translation, and subtle heads-up alerts on a featherweight titanium frame. No intrusive cameras, 100% GDPR compliant, and engineered for German professionals.</p>
-        <div class="hero-actions">
-          <a href="#preorder" class="btn-primary">Reserve Your Founder Edition — €549</a>
-          <a href="#features" class="btn-secondary">Explore Corporate Privacy Specs</a>
-        </div>
+  <!-- ── Trust bar ── -->
+  <div class="trust-bar">
+    <div class="trust-bar-inner">
+      <div class="trust-item">
+        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        CE-zertifizierte Hardware
       </div>
-    </section>
-
-    <!-- Specs Bar -->
-    <section class="specs-bar">
-      <div class="container specs-grid">
-        <div class="spec-item">
-          <h4>38g</h4>
-          <p>Aerospace Titanium</p>
-        </div>
-        <div class="spec-item">
-          <h4>0 Cameras</h4>
-          <p>100% GDPR Compliant</p>
-        </div>
-        <div class="spec-item">
-          <h4>Micro-LED</h4>
-          <p>Invisible Waveguide HUD</p>
-        </div>
-        <div class="spec-item">
-          <h4>Fielmann / Apollo</h4>
-          <p>Native Prescription Ready</p>
-        </div>
+      <div class="trust-item">
+        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        DSGVO-konform by Design
       </div>
-    </section>
-
-    <!-- Core Features Section -->
-    <section class="features" id="features">
-      <div class="container">
-        <div class="section-header">
-          <h2>Intelligence in Plain Sight. Zero Privacy Compromise.</h2>
-          <p>Engineered to resolve the fundamental friction holding smart eyewear back in Germany.</p>
-        </div>
-
-        <div class="feature-grid">
-          <!-- Card 1 -->
-          <div class="feature-card">
-            <div class="feature-icon">&check;</div>
-            <h3>100% Camera-Free & Works Council Compliant</h3>
-            <p>Unlike conventional smart glasses that record bystanders and trigger office bans, AuraVision G1 features zero optical cameras or audio eavesdropping. Fully compliant with German <em>Betriebsrat</em> workplace regulations and Section 201a privacy requirements. Wear it freely into client boardrooms and production floors.</p>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="feature-card">
-            <div class="feature-icon">&#9678;</div>
-            <h3>Invisible Micro-LED Optical Waveguide Display</h3>
-            <p>Powered by a dual-eye monochrome green waveguide display, your critical notes, teleprompter cues, and turn-by-turn navigation float discreetly at infinite focus. Only you can see the display—it remains entirely invisible to observers sitting directly across the table.</p>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="feature-card">
-            <div class="feature-icon">&harr;</div>
-            <h3>Real-Time Multilingual Translation & Teleprompting</h3>
-            <p>Deliver high-stakes keynote presentations without ever looking down at cue cards. In cross-border negotiations, read live real-time German-to-English or French-to-German text translations floating seamlessly beside your conversation partner.</p>
-          </div>
-
-          <!-- Card 4 -->
-          <div class="feature-card">
-            <div class="feature-icon">&oplus;</div>
-            <h3>Master Optician Prescription & Bauhaus Titanium</h3>
-            <p>Weighing just 38 grams, AuraVision G1 is forged from hypoallergenic aerospace titanium. Designed in the minimalist Bauhaus tradition, it blends indistinguishably into high-end executive eyewear and pairs seamlessly with custom prescription lenses from top German optical partners.</p>
-          </div>
-        </div>
+      <div class="trust-item">
+        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Zertifizierter SAP-Connector
       </div>
-    </section>
-
-    <!-- Comparison Table Section -->
-    <section class="comparison">
-      <div class="container">
-        <div class="section-header">
-          <h2>How AuraVision G1 Compares</h2>
-          <p>Tailored specifically for European regulatory standards and executive workflow.</p>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Feature / Dimension</th>
-                <th>Ray-Ban Meta</th>
-                <th>AR Goggles (XREAL)</th>
-                <th>AuraVision G1</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="highlight">
-                <td>German Privacy & Works Council</td>
-                <td>High friction (office bans)</td>
-                <td>Sensors present</td>
-                <td>100% Certified Compliant</td>
-              </tr>
-              <tr>
-                <td>Built-in Camera</td>
-                <td>Yes (12 MP, LED indicator)</td>
-                <td>Tracking sensors</td>
-                <td>None (Camera-Free)</td>
-              </tr>
-              <tr>
-                <td>Weight & Form Factor</td>
-                <td>~50g plastic frame</td>
-                <td>75g–90g bulky visor</td>
-                <td>38g Aerospace Titanium</td>
-              </tr>
-              <tr>
-                <td>Discreet Heads-Up Display</td>
-                <td>None (audio only)</td>
-                <td>Color Birdbath (cable tether)</td>
-                <td>Monochrome Waveguide HUD</td>
-              </tr>
-              <tr>
-                <td>Prescription Optical Integration</td>
-                <td>Third-party ordering</td>
-                <td>Clip-in insert</td>
-                <td>Certified Optician Partners</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="trust-item">
+        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Lokaler Deutschland-Support
       </div>
-    </section>
-
-    <!-- Pre-Order CTA Section -->
-    <section class="cta-section" id="preorder">
-      <div class="container cta-box">
-        <h2>Elevate Your Daily Focus with German Engineered Optical AI</h2>
-        <p>Backed by a 30-day corporate trial, German customer support, and full GDPR compliance documentation.</p>
-        <a href="#preorder" class="btn-primary">Pre-Order AuraVision G1 — €549</a>
+      <div class="trust-item">
+        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        90-Tage-Pilot-Garantie
       </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer>
-    <div class="container footer-inner">
-      <div class="copyright">&copy; 2026 AuraVision Technologies GmbH. All rights reserved.</div>
-      <div class="footer-note">Demo prototype developed for venture team coordination demonstration.</div>
     </div>
-  </footer>
+  </div>
+
+  <!-- ── Benefits ── -->
+  <section id="benefits">
+    <div class="container">
+      <div class="section-label">Kernvorteile</div>
+      <h2 class="section-heading">Was uns von allen anderen Anbietern unterscheidet</h2>
+      <p class="section-sub">Vier Differenzierungsmerkmale, die in dieser Kombination kein anderer Hersteller auf dem Markt bietet.</p>
+
+      <div class="benefits-grid">
+
+        <!-- Card 1 -->
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>DSGVO-nativ — keine Nachbesserung, kein Risiko</h3>
+          <p>
+            Datenschutz ist bei uns keine rechtliche Checkliste, sondern ein Hardware-Merkmal. Physische Aufnahmeindikatoren erfüllen die EDPB-Anforderungen vom Oktober 2026. On-Device-KI-Verarbeitung stellt sicher, dass sensible Sprachbefehle Ihre Fabrik nie verlassen. Fertige DSFA-Vorlagen für die häufigsten industriellen Einsatzszenarien sind im Lieferumfang enthalten.
+          </p>
+          <div class="benefit-result">Ihr IT-Sicherheitsbeauftragter und Ihr Betriebsrat geben grünes Licht — ohne monatelange Prüfung.</div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h3>SAP-Integration — kein Implementierungsprojekt, sondern ein zertifizierter Connector</h3>
+          <p>
+            Die drei wichtigsten Smart-Glasses-Anwendungsfälle in der deutschen Fertigung sind fertig integriert: Pick-by-Vision im Lager (SAP EWM), Arbeitsauftragsanzeige in der Instandhaltung (SAP PM) und Qualitätsprüfungs-Checklisten (SAP QM). Kein Integrationsprojekt auf Stundenbasis — ein zertifizierter, vorgebauter Connector.
+          </p>
+          <div class="benefit-result">Kein anderer Anbieter auf dem Markt hat dies als standardisiertes Produktmerkmal umgesetzt.</div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>KI-Assistent auf Deutsch — nicht übersetzt, sondern nativ</h3>
+          <p>
+            Die Sprachschnittstelle, die Produktdokumentation, das Support-Team und die Servicebereitschaft: alles auf Deutsch. Lokale SLA-Verpflichtungen. Ein deutschsprachiger Support, der versteht, wie deutsche Industriebetriebe arbeiten — inklusive Schichtmodellen, Betriebsratsstrukturen und lokalen Sicherheitsvorschriften.
+          </p>
+          <div class="benefit-result">Voller Sprachsupport, der Ihre Betriebsrealität kennt.</div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <h3>Industrietaugliche Hardware — keine umgelabelten Consumer-Brillen</h3>
+          <p>
+            CE-Kennzeichnung, industrielle IP-Schutzklasse, Kompatibilität mit gängigen Werksschutzausrüstungen. Entwickelt für den Schichtbetrieb, nicht für den Schreibtisch.
+          </p>
+          <div class="benefit-result">Betriebssicher vom ersten Schichttag an.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Social Proof ── -->
+  <section id="social-proof">
+    <div class="container">
+      <div class="section-label">Stimmen aus der Praxis</div>
+      <h2 class="section-heading">Was unsere Pilotkunden sagen</h2>
+      <div class="testimonials-grid">
+
+        <div class="testimonial-card">
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Wir haben mehrere Anbieter evaluiert. Dieser war der einzige, der am ersten Tag eine unterzeichnungsfertige Auftragsverarbeitungsvereinbarung nach deutschem Recht vorlegen konnte.</p>
+          <div class="testimonial-attribution">
+            IT-Leiter, Automobilzulieferer
+            <span>Bayern</span>
+            <span class="placeholder-badge">Platzhalter</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Die SAP-EWM-Integration lief in unserem Pilotlager in unter drei Wochen produktiv. Das haben wir bei keiner vergleichbaren Lösung erlebt.</p>
+          <div class="testimonial-attribution">
+            Leiter Logistik Operations, Kontraktlogistiker
+            <span>Nordrhein-Westfalen</span>
+            <span class="placeholder-badge">Platzhalter</span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Unser Betriebsrat hatte erhebliche Vorbehalte gegenüber Smart Glasses. Die mitgelieferte DSFA-Vorlage und die On-Device-Verarbeitung haben diese Diskussion innerhalb von zwei Sitzungen gelöst.</p>
+          <div class="testimonial-attribution">
+            Datenschutzbeauftragter, Maschinenbauunternehmen
+            <span>Baden-Württemberg</span>
+            <span class="placeholder-badge">Platzhalter</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ── -->
+  <section id="features">
+    <div class="container">
+      <div class="features-layout">
+
+        <div class="features-intro">
+          <div class="section-label">Produktmerkmale</div>
+          <h2 class="section-heading">Vollständige Spezifikation auf einen Blick</h2>
+          <p>Jedes Merkmal ist nicht nachgerüstet, sondern von Anfang an für den deutschen Industrieeinsatz konzipiert — von der Hardware-Architektur bis zu den rechtlichen Vorlagen.</p>
+          <p>Kein anderer Anbieter liefert DSGVO-Konformität, SAP-Integration und deutschen Sprachsupport als einheitliches, zertifiziertes Produktpaket.</p>
+        </div>
+
+        <ul class="feature-list">
+          <li>Hardware-Aufnahmeindikatoren nach EDPB-Anforderungen (Oktober 2026)</li>
+          <li>On-Device-KI-Verarbeitung für Sprachbefehle (kein Cloud-Transfer sensibler Daten)</li>
+          <li>Zertifizierter SAP-Connector: EWM, PM, QM</li>
+          <li>Deutschsprachiger KI-Sprachassistent</li>
+          <li>Industrielle CE-Zertifizierung und IP-Schutzklasse</li>
+          <li>Fertige DSFA-Vorlagen für gängige Industrieanwendungen</li>
+          <li>Unterzeichnungsfertige Auftragsverarbeitungsvereinbarung (AVV) nach deutschem Recht</li>
+          <li>Lokaler Deutschland-Support mit SLA-Verpflichtung</li>
+          <li>Kompatibilität mit Standard-Persönlicher-Schutzausrüstung (PSA)</li>
+        </ul>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section id="cta">
+    <div class="container">
+      <div class="cta-inner">
+        <div class="section-label">Nächster Schritt</div>
+        <h2>Starten Sie Ihren bezahlten Pilot — in 90 Tagen produktiv oder Geld zurück.</h2>
+        <p>
+          Vereinbaren Sie ein 30-minütiges Gespräch mit unserem deutschen Vertriebsteam. Wir qualifizieren gemeinsam den richtigen Einsatzbereich für Ihren Betrieb, schlagen einen Pilot-Scope vor und stellen Ihnen einen SAP-zertifizierten Implementierungspartner in Ihrer Region vor.
+        </p>
+        <div class="cta-buttons">
+          <a href="mailto:kontakt@example.com" class="btn-primary">Gespräch vereinbaren</a>
+          <a href="mailto:demo@example.com" class="btn-secondary">Demo anfordern</a>
+        </div>
+        <p class="cta-fine">
+          Pilot-Scopes sind in der Regel auf Abteilungsebene genehmigungsfähig und innerhalb von zwei Wochen definierbar. SAP-Integrationspartner aus bestehendem Netzwerk sind in allen deutschen Regionen verfügbar.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">Vision<span>Works</span> Industrial</div>
+    <p class="footer-note">
+      Demo-Prototyp — November 2026. Alle Zitate sind Platzhalter und repräsentieren reale Käuferpersönlichkeiten der Zielgruppe. Sie sind durch verifizierte Kundenaussagen zu ersetzen, bevor das Material öffentlich verwendet wird.
+    </p>
+  </div>
+</footer>
 
 </body>
 </html>
