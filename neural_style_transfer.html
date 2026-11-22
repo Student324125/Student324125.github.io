@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Style Transfer</title>
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #252538;
+  --text: #e0e0e8;
+  --text2: #8888aa;
+  --border: #2a2a4a;
+  --radius: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 24px 20px 80px;
+  line-height: 1.5;
+}
+.wrap { max-width: 920px; margin: 0 auto; }
+
+header { text-align: center; margin-bottom: 28px; }
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #667eea 0%, #ce93d8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+.sub { color: var(--text2); font-size: 0.9rem; }
+
+/* ── Upload ── */
+.upload-wrap {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 42px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  background: var(--surface);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.upload-wrap:hover, .upload-wrap.over { border-color: #667eea; background: var(--surface2); }
+.upload-wrap.loaded { padding: 0; cursor: default; }
+.upload-wrap.loaded .upload-placeholder { display: none; }
+.up-icon { font-size: 2.4rem; }
+.up-label { margin-top: 8px; font-size: .95rem; }
+.up-hint { margin-top: 4px; color: var(--text2); font-size: .8rem; }
+.change-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,.65); color: #fff; border: none;
+  border-radius: 6px; padding: 4px 10px; font-size: .75rem;
+  cursor: pointer; display: none;
+}
+.upload-wrap.loaded .change-btn { display: block; }
+#preview-img { width: 100%; max-height: 320px; object-fit: contain; display: none; border-radius: 8px; }
+.upload-wrap.loaded #preview-img { display: block; }
+#file-input { display: none; }
+
+/* ── Quality selector ── */
+.quality-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.quality-row label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.quality-row select {
+  flex: 1;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: .85rem;
+  cursor: pointer;
+  outline: none;
+}
+.quality-row select:focus { border-color: #667eea; }
+.quality-info {
+  font-size: .75rem;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+/* ── Section label ── */
+.sec {
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text2); margin-bottom: 12px;
+}
+
+/* ── Style grid ── */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.style-card {
+  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 14px 8px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+  user-select: none;
+}
+.style-card:hover { background: var(--surface2); transform: translateY(-2px); }
+.style-card.sel { border-color: var(--c); }
+.si { font-size: 1.5rem; }
+.sn { font-size: .8rem; font-weight: 600; margin-top: 5px; }
+.sa { font-size: .68rem; color: var(--text2); margin-top: 2px; }
+.sd { width: 7px; height: 7px; border-radius: 50%; background: var(--c); margin: 6px auto 0; }
+
+/* ── Apply button ── */
+.apply-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 1rem; font-weight: 700;
+  border: none; border-radius: var(--radius);
+  cursor: pointer;
+  margin-bottom: 28px;
+  transition: opacity .15s, transform .1s;
+}
+.apply-btn:hover { opacity: .9; transform: translateY(-1px); }
+.apply-btn:active { transform: none; }
+.apply-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+/* ── Results ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.rc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.rch { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.rcd { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.rcn { font-size: .82rem; font-weight: 600; }
+.rct { margin-left: auto; font-size: .72rem; color: var(--text2); }
+.rcb { min-height: 180px; }
+.rc-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; min-height: 180px; color: var(--text2); font-size: .8rem;
+  text-align: center; padding: 20px;
+}
+.spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2.5px solid var(--border); border-top-color: var(--sc, #667eea);
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.rc-hint { font-size: .7rem; opacity: .6; }
+.rc-err {
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px; min-height: 180px; padding: 20px;
+  color: #ef5350; font-size: .8rem; text-align: center;
+}
+.rc-img { width: 100%; display: none; }
+.rc-img.vis { display: block; }
+.rcf { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-top: 1px solid var(--border); }
+.dl-btn {
+  padding: 5px 11px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: .75rem;
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.dl-btn:hover { background: var(--surface2); border-color: var(--text2); }
+.dl-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ── Original reference card ── */
+.orig-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.orig-card .rch { background: rgba(102,126,234,.1); }
+
+/* ── License note ── */
+.license-note {
+  margin-top: 40px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .75rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.license-note strong { color: var(--text); }
+
+/* ── Status bar ── */
+#statusbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 7px 20px; font-size: .78rem; color: var(--text2);
+  opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+#statusbar.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Neural Style Transfer</h1>
+    <p class="sub">KI-basierte Kunststile – läuft vollständig im Browser</p>
+  </header>
+
+  <div class="upload-wrap" id="upload-wrap">
+    <div class="upload-placeholder">
+      <div class="up-icon">🖼️</div>
+      <div class="up-label">Bild hier ablegen oder klicken zum Auswählen</div>
+      <div class="up-hint">JPG · PNG · WebP – max. 10 MB</div>
+    </div>
+    <img id="preview-img" alt="Vorschau">
+    <button class="change-btn" id="change-btn" type="button">Bild ändern</button>
+    <input type="file" id="file-input" accept="image/*">
+  </div>
+
+  <!-- ── Auflösungsauswahl ── -->
+  <div class="quality-row">
+    <label for="quality-sel">🔍 Auflösung:</label>
+    <select id="quality-sel">
+      <option value="256" selected>256 px – Standard (schnell)</option>
+      <option value="512">512 px – Besser (mittel)</option>
+      <option value="1024">1024 px – Hoch (langsam)</option>
+    </select>
+    <span class="quality-info" id="quality-info">Bild wird auf max. 256 px skaliert</span>
+  </div>
+
+  <div class="sec">Stile</div>
+  <div class="style-grid" id="style-grid"></div>
+
+  <button class="apply-btn" id="apply-btn" disabled type="button">✨ Alle Stile anwenden</button>
+
+  <div class="sec" id="results-label" style="display:none">Ergebnisse</div>
+  <div class="results-grid" id="results-grid"></div>
+
+  <!-- ── Lizenzhinweis ── -->
+  <div class="license-note">
+    <strong>Lizenz:</strong> Die verwendeten ONNX-Modelle stammen aus dem
+    <a href="https://github.com/onnx/models" style="color:#667eea" target="_blank">ONNX Model Zoo</a>
+    (fast-neural-style, -9 Versionen) und dürfen frei für persönliche und
+    Forschungszwecke verwendet werden. Die Verarbeitung erfolgt vollständig lokal
+    im Browser – es werden keine Bilder an einen Server übertragen.
+  </div>
+</div>
+
+<div id="statusbar"></div>
+
+<script src="lib/ort.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//  Aquarell – pure-JS Watercolor effect
+// ═══════════════════════════════════════════════════════════════════════════
+function applyWatercolor(imageData) {
+  const { data, width, height } = imageData;
+  const src = new Uint8ClampedArray(data);
+
+  function blurH(d, r) {
+    const o = new Uint8ClampedArray(d.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let sr = 0, sg = 0, sb = 0, cnt = 0;
+        for (let dx = -r; dx <= r; dx++) {
+          const cx = Math.max(0, Math.min(width - 1, x + dx));
+          const pi = (y * width + cx) * 4;
+          sr += d[pi]; sg += d[pi+1]; sb += d[pi+2]; cnt++;
+        }
+        const pi = (y * width + x) * 4;
+        o[pi] = sr/cnt; o[pi+1] = sg/cnt; o[pi+2] = sb/cnt; o[pi+3] = d[pi+3];
+      }
+    }
+    return o;
+  }
+  function blurV(d, r) {
+    const o = new Uint8ClampedArray(d.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let sr = 0, sg = 0, sb = 0, cnt = 0;
+        for (let dy = -r; dy <= r; dy++) {
+          const cy = Math.max(0, Math.min(height - 1, y + dy));
+          const pi = (cy * width + x) * 4;
+          sr += d[pi]; sg += d[pi+1]; sb += d[pi+2]; cnt++;
+        }
+        const pi = (y * width + x) * 4;
+        o[pi] = sr/cnt; o[pi+1] = sg/cnt; o[pi+2] = sb/cnt; o[pi+3] = d[pi+3];
+      }
+    }
+    return o;
+  }
+
+  let blurred = blurH(src, 3);
+  blurred = blurV(blurred, 3);
+  blurred = blurH(blurred, 2);
+  blurred = blurV(blurred, 2);
+
+  const out = new Uint8ClampedArray(src.length);
+  for (let i = 0; i < width * height; i++) {
+    const pi = i * 4;
+    let r = blurred[pi] / 255;
+    let g = blurred[pi+1] / 255;
+    let b = blurred[pi+2] / 255;
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+    let h2 = 0, s = 0;
+    const l = (mx + mn) / 2;
+    if (mx !== mn) {
+      const d = mx - mn;
+      s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+      if (mx === r)      h2 = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      else if (mx === g) h2 = ((b - r) / d + 2) / 6;
+      else               h2 = ((r - g) / d + 4) / 6;
+    }
+    const s2 = Math.min(1, s * 1.5);
+    const l2 = Math.min(1, l * 1.08 + 0.04);
+    function hue2rgb(p, q, t) {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    }
+    if (s2 === 0) { r = g = b = l2; } else {
+      const q = l2 < 0.5 ? l2 * (1 + s2) : l2 + s2 - l2 * s2;
+      const p = 2 * l2 - q;
+      r = hue2rgb(p, q, h2 + 1/3);
+      g = hue2rgb(p, q, h2);
+      b = hue2rgb(p, q, h2 - 1/3);
+    }
+    const noise = (Math.random() - 0.5) * 0.05;
+    out[pi]   = Math.min(255, Math.max(0, (r + noise) * 255 + 0.5)) | 0;
+    out[pi+1] = Math.min(255, Math.max(0, (g + noise) * 255 + 0.5)) | 0;
+    out[pi+2] = Math.min(255, Math.max(0, (b + noise) * 255 + 0.5)) | 0;
+    out[pi+3] = 255;
+  }
+  return { data: out, width, height };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Style definitions
+// ═══════════════════════════════════════════════════════════════════════════
+const STYLES = [
+  { id: 'candy',         name: 'Candy',        artist: 'Abstract / Vibrant',    color: '#ff6b9d', icon: '🍬', path: 'models/candy-9.onnx' },
+  { id: 'mosaic',        name: 'Mosaic',        artist: 'Geometric Abstraction', color: '#7b68ee', icon: '◼',  path: 'models/mosaic-9.onnx' },
+  { id: 'rain-princess', name: 'Rain Princess', artist: 'Leonid Afremov',        color: '#64b5f6', icon: '🌧', path: 'models/rain-princess-9.onnx' },
+  { id: 'udnie',         name: 'Udnie',         artist: 'Francis Picabia',       color: '#80cbc4', icon: '◫',  path: 'models/udnie-9.onnx' },
+  { id: 'pointilism',    name: 'Pointilism',    artist: 'Georges Seurat',        color: '#a5d6a7', icon: '•',  path: 'models/pointilism-9.onnx' },
+  { id: 'watercolor',    name: 'Aquarell',      artist: 'Watercolor Effect',     color: '#ce93d8', icon: '🎨', jsFn: applyWatercolor },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ONNX inference – runs on the page itself (no Web Worker).
+//  Safari kills ORT workers silently after the first model; a single ORT
+//  instance on the main thread with one session at a time avoids that and
+//  surfaces real error messages.
+// ═══════════════════════════════════════════════════════════════════════════
+ort.env.wasm.wasmPaths = new URL('lib/', document.location.href).href;
+ort.env.wasm.numThreads = 1;
+ort.env.wasm.proxy = false;
+
+// Opened by double-click (file://)? Browsers block fetch/XHR of local files,
+// but <script src> works. make_offline_files.py stores the WASM runtime and
+// the models base64-encoded in .js files, which are loaded here on demand.
+const IS_FILE = location.protocol === 'file:';
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => { s.remove(); resolve(); };
+    s.onerror = () => { s.remove(); reject(new Error(src + ' fehlt – bitte einmal  python3 make_offline_files.py  ausführen.')); };
+    document.head.appendChild(s);
+  });
+}
+
+async function loadEmbedded(relPath) {
+  await loadScript(relPath + '.js');
+  const store = window.__EMBEDDED_BIN || {};
+  const b64 = store[relPath];
+  if (!b64) throw new Error(relPath + '.js enthält keine Daten.');
+  delete store[relPath];               // free the big string right away
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+let wasmReady = null;
+function ensureWasm() {
+  if (!IS_FILE) return Promise.resolve();
+  if (!wasmReady) {
+    wasmReady = loadEmbedded('lib/ort-wasm-simd.wasm').then(bytes => {
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/wasm' }));
+      ort.env.wasm.wasmPaths = { 'ort-wasm-simd.wasm': url };
+    }).catch(e => { wasmReady = null; throw e; });
+  }
+  return wasmReady;
+}
+
+// fast-neural-style models expect a fixed 224×224 input
+const MODEL_SIZE = 224;
+
+function resizeRGBA(src, sw, sh, dw, dh) {
+  const c = document.createElement('canvas');
+  c.width = sw; c.height = sh;
+  c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(src), sw, sh), 0, 0);
+  const d = document.createElement('canvas');
+  d.width = dw; d.height = dh;
+  const dctx = d.getContext('2d');
+  dctx.imageSmoothingQuality = 'high';
+  dctx.drawImage(c, 0, 0, dw, dh);
+  return dctx.getImageData(0, 0, dw, dh).data;
+}
+
+function rgbaToNCHW(rgba, w, h) {
+  const hw = w * h, out = new Float32Array(3 * hw);
+  for (let i = 0; i < hw; i++) {
+    out[i]          = rgba[i * 4];
+    out[hw + i]     = rgba[i * 4 + 1];
+    out[2 * hw + i] = rgba[i * 4 + 2];
+  }
+  return out;
+}
+
+function nchwToRGBA(data, w, h) {
+  const hw = w * h, out = new Uint8ClampedArray(hw * 4);
+  for (let i = 0; i < hw; i++) {
+    out[i * 4]     = data[i];
+    out[i * 4 + 1] = data[hw + i];
+    out[i * 4 + 2] = data[2 * hw + i];
+    out[i * 4 + 3] = 255;
+  }
+  return out;
+}
+
+function releaseSession(session) {
+  try {
+    if (typeof session.release === 'function') session.release();
+    else if (session.handler && typeof session.handler.dispose === 'function') session.handler.dispose();
+  } catch (e) { /* already released */ }
+}
+
+const nextFrame = () => new Promise(r => setTimeout(r, 20));
+
+async function runStyle(modelRelPath, imageData) {
+  setStatus('Lade Modell ' + modelRelPath.split('/').pop() + '…');
+  await nextFrame();
+  let session;
+  try {
+    await ensureWasm();
+    const model = IS_FILE ? await loadEmbedded(modelRelPath) : modelRelPath;
+    session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'] });
+  } catch (e) {
+    throw new Error('Modell konnte nicht geladen werden: ' + (e.message || e));
+  }
+  try {
+    const w = MODEL_SIZE, h = MODEL_SIZE;
+    const rgba = resizeRGBA(imageData.data, imageData.width, imageData.height, w, h);
+    const input = new ort.Tensor('float32', rgbaToNCHW(rgba, w, h), [1, 3, h, w]);
+    setStatus('Berechne Stil…');
+    await nextFrame();
+    const t0 = Date.now();
+    const results = await session.run({ [session.inputNames[0]]: input });
+    const elapsed = Date.now() - t0;
+    const out = results[session.outputNames[0]];
+    const [, , oh, ow] = out.dims;
+    let outRGBA = nchwToRGBA(out.data, ow, oh);
+    // scale result back to the chosen resolution / original aspect ratio
+    outRGBA = resizeRGBA(outRGBA, ow, oh, imageData.width, imageData.height);
+    return { buffer: outRGBA.buffer, width: imageData.width, height: imageData.height, elapsed };
+  } finally {
+    releaseSession(session);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Quality / resolution picker
+// ═══════════════════════════════════════════════════════════════════════════
+function getMaxSize() {
+  const sel = document.getElementById('quality-sel');
+  return sel ? parseInt(sel.value, 10) : 256;
+}
+
+document.getElementById('quality-sel').addEventListener('change', function () {
+  const info = document.getElementById('quality-info');
+  if (info) info.textContent = 'Bild wird auf max. ' + this.value + ' px skaliert';
+
+  // If image already loaded, re-process it at new resolution
+  if (sourceFile) loadFile(sourceFile);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Status bar
+// ═══════════════════════════════════════════════════════════════════════════
+let _statusTimer = null;
+function setStatus(text) {
+  const bar = document.getElementById('statusbar');
+  bar.textContent = text;
+  bar.classList.toggle('on', !!text);
+  if (_statusTimer) clearTimeout(_statusTimer);
+  if (text) _statusTimer = setTimeout(() => bar.classList.remove('on'), 6000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Result cards
+// ═══════════════════════════════════════════════════════════════════════════
+function buildOriginalCard(imageData, dataUrl) {
+  const grid = document.getElementById('results-grid');
+  const old = document.getElementById('rc-original');
+  if (old) old.remove();
+
+  const div = document.createElement('div');
+  div.className = 'rc orig-card';
+  div.id = 'rc-original';
+  div.innerHTML =
+    '<div class="rch">' +
+      '<div class="rcd" style="background:#667eea"></div>' +
+      '<span class="rcn">🖼️ Original</span>' +
+      '<span class="rct">' + imageData.width + ' × ' + imageData.height + ' px</span>' +
+    '</div>' +
+    '<div class="rcb"><img class="rc-img vis" src="' + dataUrl + '" alt="Original"></div>' +
+    '<div class="rcf"><span style="font-size:.72rem;color:var(--text2)">Eingangsbild</span></div>';
+  grid.prepend(div);
+}
+
+function buildResultCard(s) {
+  const grid = document.getElementById('results-grid');
+  const old = document.getElementById('rc-' + s.id);
+  if (old) old.remove();
+
+  const div = document.createElement('div');
+  div.className = 'rc';
+  div.id = 'rc-' + s.id;
+  const hint = s.jsFn ? '' : '<div class="rc-hint">Erster Start: ~15 Sekunden</div>';
+  div.innerHTML =
+    '<div class="rch">' +
+      '<div class="rcd" style="background:' + s.color + '"></div>' +
+      '<span class="rcn">' + s.icon + ' ' + s.name + '</span>' +
+      '<span class="rct" id="rct-' + s.id + '"></span>' +
+    '</div>' +
+    '<div class="rcb" id="rcb-' + s.id + '">' +
+      '<div class="rc-loading" id="rcl-' + s.id + '">' +
+        '<div class="spinner" style="--sc:' + s.color + '"></div>' +
+        '<div>' + (s.jsFn ? 'Rendering…' : 'Initialisiere ONNX Runtime…') + '</div>' +
+        hint +
+      '</div>' +
+      '<img class="rc-img" id="rci-' + s.id + '" alt="' + s.name + '">' +
+    '</div>' +
+    '<div class="rcf">' +
+      '<button class="dl-btn" id="rcdl-' + s.id + '" disabled type="button">💾 Speichern</button>' +
+    '</div>';
+  grid.appendChild(div);
+}
+
+function showResultDone(s, url, elapsed) {
+  const loader = document.getElementById('rcl-' + s.id);
+  if (loader) loader.remove();
+  const img = document.getElementById('rci-' + s.id);
+  if (img) { img.src = url; img.classList.add('vis'); }
+  const time = document.getElementById('rct-' + s.id);
+  if (time) time.textContent = elapsed < 1000 ? elapsed + ' ms' : (elapsed/1000).toFixed(1) + ' s';
+  const dl = document.getElementById('rcdl-' + s.id);
+  if (dl) {
+    dl.disabled = false;
+    dl.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = url; a.download = 'style-' + s.id + '.png'; a.click();
+    });
+  }
+}
+
+function showResultError(s, msg) {
+  const body = document.getElementById('rcb-' + s.id);
+  if (body) body.innerHTML = '<div class="rc-err">⚠️ ' + msg + '</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Process one style
+// ═══════════════════════════════════════════════════════════════════════════
+let sourceImageData = null;
+
+async function processOneStyle(s) {
+  try {
+    let width, height, elapsed, rgba;
+    if (s.jsFn) {
+      const t0 = Date.now();
+      const res = s.jsFn(sourceImageData);
+      elapsed = Date.now() - t0;
+      width = res.width; height = res.height; rgba = res.data;
+    } else {
+      const result = await runStyle(s.path, sourceImageData);
+      elapsed = result.elapsed; width = result.width; height = result.height;
+      rgba = new Uint8ClampedArray(result.buffer);
+    }
+    const imgData = new ImageData(rgba, width, height);
+    const canvas  = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').putImageData(imgData, 0, 0);
+    canvas.toBlob(blob => {
+      showResultDone(s, URL.createObjectURL(blob), elapsed);
+    }, 'image/png');
+  } catch (err) {
+    showResultError(s, err.message || String(err));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Apply all
+// ═══════════════════════════════════════════════════════════════════════════
+async function applyAll() {
+  if (!sourceImageData) return;
+  const btn = document.getElementById('apply-btn');
+  btn.disabled = true;
+
+  document.getElementById('results-grid').innerHTML = '';
+  document.getElementById('results-label').style.display = '';
+
+  // Show original image as reference
+  buildOriginalCard(sourceImageData, document.getElementById('preview-img').src);
+
+  // Show all cards with spinners first, then render one style at a time
+  STYLES.forEach(buildResultCard);
+  await nextFrame();
+  for (const s of STYLES) await processOneStyle(s);
+  btn.disabled = false;
+  setStatus('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Image loading – uses quality selector for max resolution
+// ═══════════════════════════════════════════════════════════════════════════
+let sourceFile = null;
+let sourceDataUrl = null;
+
+function loadFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  sourceFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    sourceDataUrl = e.target.result;
+    const img = new Image();
+    img.onload = () => {
+      const MAX = getMaxSize();
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        const sc = Math.min(MAX/w, MAX/h);
+        w = Math.round(w * sc); h = Math.round(h * sc);
+      }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      sourceImageData = c.getContext('2d').getImageData(0, 0, w, h);
+
+      document.getElementById('preview-img').src = sourceDataUrl;
+      document.getElementById('upload-wrap').classList.add('loaded');
+      document.getElementById('apply-btn').disabled = false;
+      document.getElementById('results-grid').innerHTML = '';
+      document.getElementById('results-label').style.display = 'none';
+    };
+    img.src = sourceDataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Style grid
+// ═══════════════════════════════════════════════════════════════════════════
+function buildStyleGrid() {
+  const grid = document.getElementById('style-grid');
+  STYLES.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'style-card';
+    card.style.setProperty('--c', s.color);
+    card.dataset.id = s.id;
+    card.innerHTML =
+      '<div class="si">' + s.icon + '</div>' +
+      '<div class="sn">' + s.name + '</div>' +
+      '<div class="sa">' + s.artist + '</div>' +
+      '<div class="sd"></div>';
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Event wiring
+// ═══════════════════════════════════════════════════════════════════════════
+const uploadWrap = document.getElementById('upload-wrap');
+
+uploadWrap.addEventListener('click', e => {
+  if (e.target === document.getElementById('change-btn') ||
+      (e.target.closest && e.target.closest('.change-btn'))) {
+    uploadWrap.classList.remove('loaded');
+    sourceImageData = null; sourceFile = null; sourceDataUrl = null;
+    document.getElementById('apply-btn').disabled = true;
+    document.getElementById('file-input').value = '';
+    document.getElementById('preview-img').src = '';
+  } else if (!uploadWrap.classList.contains('loaded')) {
+    document.getElementById('file-input').click();
+  }
+});
+
+document.getElementById('file-input').addEventListener('change', e => {
+  loadFile(e.target.files[0]);
+});
+
+uploadWrap.addEventListener('dragover', e => { e.preventDefault(); uploadWrap.classList.add('over'); });
+uploadWrap.addEventListener('dragleave', () => uploadWrap.classList.remove('over'));
+uploadWrap.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadWrap.classList.remove('over');
+  loadFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('apply-btn').addEventListener('click', applyAll);
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+buildStyleGrid();
+
+</script>
+</body>
+</html>
