@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="narrative">
+  <meta name="design-style" content="atelier">
+  <title>Adorable Caro — Lifestyle, Fashion, N9 &amp; Matcha Archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces (Atelier) */
+      --background: #fafaf8;
+      --surface-container-low: #ece8e1;
+      --surface-container: #e5e0d8;
+      --surface-container-high: #ddd7cd;
+
+      /* Ink */
+      --on-surface: #111111;
+      --on-surface-variant: #5b5752;
+
+      /* Rules */
+      --outline: #111111;
+      --outline-variant: #d8d3cb;
+
+      /* Accents */
+      --primary: #111111;
+      --on-primary: #fafaf8;
+      --primary-container: #ece8e1;
+      --on-primary-container: #111111;
+      --secondary: #7a5c48;
+      --tertiary: #a89c8c;
+      --error: #9a2b22;
+      --on-error: #fafaf8;
+
+      /* Data series */
+      --data-1: #111111;
+      --data-2: #7a5c48;
+      --data-3: #948a7d;
+      --data-4: #55657a;
+      --data-context: #cfc9bf;
+
+      /* Fonts */
+      --font-headline: 'Bodoni Moda', serif;
+      --font-body: 'Jost', sans-serif;
+      --font-label: 'Jost', sans-serif;
+
+      /* Shape (Atelier: strictly square) */
+      --rounded: 0;
+      --rounded-lg: 0;
+      --rounded-full: 0;
+
+      /* Style effects */
+      --rule-ink: 1px solid var(--outline);
+      --rule-stone: 1px solid var(--outline-variant);
+      --label-tracking: 0.22em;
+
+      /* Shared semantic & focus tokens */
+      --positive: #3f5946;
+      --warning: #8a6429;
+      --focus: #111111;
+
+      /* Type scale (Narrative) */
+      --display-size: clamp(2.65rem, 1.45rem + 4.4vw, 4.75rem);
+      --headline-size: clamp(1.85rem, 1.25rem + 2.1vw, 2.65rem);
+      --subhead-size: clamp(1.25rem, 1.08rem + 0.55vw, 1.5rem);
+      --body-size: clamp(1.0625rem, 1rem + 0.22vw, 1.15rem);
+      --label-size: clamp(0.75rem, 0.72rem + 0.12vw, 0.8125rem);
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: var(--body-size);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    /* Focus visibility */
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2xl);
+      padding: var(--space-lg) var(--space-xl) var(--space-3xl);
+      max-width: 1180px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Typography */
+    .display {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--display-size);
+      line-height: 1.06;
+      letter-spacing: -0.01em;
+      font-optical-sizing: auto;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .display em, h2 em { font-style: italic; }
+
+    h2 {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--headline-size);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin: 0 0 var(--space-md) 0;
+      color: var(--on-surface);
+    }
+
+    h3 {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--subhead-size);
+      line-height: 1.2;
+      margin: 0 0 var(--space-sm) 0;
+      color: var(--on-surface);
+    }
+
+    p {
+      margin: 0 0 var(--space-md) 0;
+      max-width: 65ch;
+      color: var(--on-surface);
+    }
+
+    .lede {
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.38rem);
+      line-height: 1.6;
+      max-width: 58ch;
+      color: var(--on-surface);
+      margin-top: var(--space-lg);
+    }
+
+    .label {
+      font-family: var(--font-label);
+      font-weight: 400;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      line-height: 1.4;
+      color: var(--on-surface);
+    }
+
+    .kicker {
+      color: var(--secondary);
+      margin-top: var(--space-sm);
+      display: block;
+    }
+
+    .note {
+      color: var(--secondary);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+
+    .muted {
+      color: var(--on-surface-variant);
+      font-size: 0.95rem;
+    }
+
+    .num-lining {
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+
+    /* Navigation strip */
+    .top-nav {
+      border-bottom: var(--rule-stone);
+      padding-bottom: var(--space-md);
+      margin-bottom: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-md);
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      color: var(--on-surface);
+      text-decoration: none;
+      padding-bottom: var(--space-xs);
+      border-bottom: 1px solid transparent;
+      transition: border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      border-bottom-color: var(--outline);
+      color: var(--secondary);
+    }
+
+    /* Title block (Gallery margins) */
+    .title-block {
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: var(--rule-ink);
+    }
+
+    /* Offset key-figure row */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-xl);
+      margin-top: var(--space-xl);
+    }
+
+    .ruled-top {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-sm);
+      background: transparent;
+    }
+
+    .ruled-top .value {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--headline-size);
+      line-height: 1.1;
+      margin: var(--space-xs) 0;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+
+    /* Section architecture */
+    .chapter {
+      padding-top: var(--space-xl);
+      border-top: var(--rule-ink);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-xl);
+    }
+
+    .chapter-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    .chapter-index {
+      border-top: var(--rule-stone);
+      padding-top: var(--space-sm);
+    }
+
+    /* Asymmetric split layouts */
+    .split-editorial {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.25fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+
+    .split-reverse {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+
+    /* Exhibition-label captions */
+    figcaption {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-sm);
+      margin-top: var(--space-md);
+      color: var(--on-surface-variant);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+    figcaption .label {
+      display: block;
+      color: var(--on-surface);
+      margin-bottom: var(--space-xs);
+    }
+
+    figure {
+      margin: 0;
+    }
+
+    /* Pull quote */
+    .pull-quote {
+      border-top: var(--rule-ink);
+      border-bottom: var(--rule-stone);
+      padding: var(--space-lg) 0;
+      margin: var(--space-lg) 0;
+    }
+    .pull-quote blockquote {
+      margin: 0 0 var(--space-sm) 0;
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-style: italic;
+      font-size: clamp(1.3rem, 1.1rem + 0.75vw, 1.75rem);
+      line-height: 1.3;
+      color: var(--on-surface);
+    }
+
+    /* Buttons (Atelier: square, 0 radius, generous padding) */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: end;
+    }
+
+    .atelier-btn {
+      font-family: var(--font-label);
+      font-weight: 400;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      padding: 0.75rem 1.25rem;
+      min-height: 44px;
+      border-radius: var(--rounded);
+      border: var(--rule-ink);
+      background: transparent;
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .atelier-btn:hover {
+      background-color: var(--surface-container-low);
+    }
+
+    .atelier-btn.is-active,
+    .atelier-btn.is-primary {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    .atelier-btn.is-active:hover,
+    .atelier-btn.is-primary:hover {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+    }
+
+    .atelier-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Stone plate (only for distinct functional objects/caption plates) */
+    .stone-plate {
+      background-color: var(--surface-container-low);
+      padding: var(--space-lg);
+      border-top: var(--rule-ink);
+    }
+
+    /* Interactive Routine Matrix */
+    .routine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(115px, 100%), 1fr));
+      gap: var(--space-sm);
+    }
+
+    .day-cell {
+      border-top: var(--rule-ink);
+      border-bottom: var(--rule-stone);
+      padding: var(--space-md) var(--space-sm);
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-short) var(--ease-out);
+      font-family: inherit;
+      color: var(--on-surface);
+    }
+
+    .day-cell:hover {
+      background-color: var(--surface-container-low);
+    }
+
+    .day-cell.is-selected {
+      background-color: var(--surface-container);
+      border-top: 2px solid var(--outline);
+    }
+
+    .day-tag {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--secondary);
+    }
+
+    .day-focus {
+      font-family: var(--font-headline);
+      font-size: 1.05rem;
+      line-height: 1.25;
+      color: var(--on-surface);
+    }
+
+    .bar-track {
+      height: 6px;
+      background-color: var(--outline-variant);
+      width: 100%;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background-color: var(--data-1);
+      transition: width var(--dur-long) var(--ease-out);
+    }
+
+    /* Matcha Interactive Diagram */
+    .matcha-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    .glass-canvas-wrap {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .matcha-svg {
+      width: 100%;
+      max-width: 340px;
+      height: auto;
+      display: block;
+    }
+
+    .layer-hit {
+      cursor: pointer;
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+
+    .layer-hit:hover {
+      opacity: 0.85;
+    }
+
+    .layer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .layer-item {
+      border-top: var(--rule-stone);
+      padding: var(--space-md) var(--space-sm);
+      background: transparent;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-md);
+      min-height: 44px;
+      font-family: inherit;
+      color: var(--on-surface);
+      transition: background-color var(--dur-short) var(--ease-out);
+    }
+
+    .layer-item:last-child {
+      border-bottom: var(--rule-stone);
+    }
+
+    .layer-item:hover {
+      background-color: var(--surface-container-low);
+    }
+
+    .layer-item.is-selected {
+      background-color: var(--surface-container);
+      border-top: var(--rule-ink);
+    }
+
+    /* Comparison Table (Atelier: no vertical lines, ink rule above/below header, stone hairlines between rows) */
+    .atelier-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--space-md);
+    }
+
+    .atelier-table th {
+      font-family: var(--font-label);
+      font-weight: 400;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      text-align: left;
+      padding: var(--space-sm) var(--space-sm);
+      border-top: var(--rule-ink);
+      border-bottom: var(--rule-ink);
+      color: var(--on-surface);
+    }
+
+    .atelier-table td {
+      padding: var(--space-md) var(--space-sm);
+      border-bottom: var(--rule-stone);
+      vertical-align: top;
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }
+
+    .atelier-table tr.is-highlight td {
+      background-color: var(--surface-container-low);
+    }
+
+    /* Brand Ecosystem Filter Grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
+      gap: var(--space-xl) var(--space-lg);
+    }
+
+    .dossier-card {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .spec-list {
+      list-style: none;
+      margin: var(--space-xs) 0 0 0;
+      padding: var(--space-sm) 0 0 0;
+      border-top: var(--rule-stone);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      font-size: 0.92rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Style Playbook Grid */
+    .playbook-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: var(--space-xl);
+    }
+
+    .playbook-block {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-md);
+    }
+
+    .swatch-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+    }
+
+    .atelier-tag {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--secondary);
+      padding: var(--space-xs) 0;
+      border-bottom: var(--rule-stone);
+      margin-right: var(--space-sm);
+      display: inline-block;
+    }
+
+    /* World Map Atlas */
+    .atlas-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    .map-frame {
+      border-top: var(--rule-ink);
+      border-bottom: var(--rule-ink);
+      background-color: var(--surface-container-low);
+      min-height: 440px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #atlas-svg {
+      width: 100%;
+      height: 440px;
+      min-height: 440px;
+      display: block;
+    }
+
+    .map-land {
+      fill: var(--background);
+      stroke: var(--outline-variant);
+      stroke-width: 0.7;
+    }
+
+    .map-graticule {
+      fill: none;
+      stroke: var(--data-context);
+      stroke-width: 0.45;
+      stroke-dasharray: 2 3;
+    }
+
+    .map-route {
+      fill: none;
+      stroke: var(--data-2);
+      stroke-width: 1.1;
+      stroke-dasharray: 4 4;
+      opacity: 0.75;
+    }
+
+    .map-pin {
+      cursor: pointer;
+      transition: transform var(--dur-micro) var(--ease-out);
+    }
+
+    .city-index {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs) var(--space-md);
+      margin-top: var(--space-md);
+      padding-top: var(--space-sm);
+      border-top: var(--rule-stone);
+    }
+
+    .city-link {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid transparent;
+      padding: var(--space-xs) 0;
+      min-height: 44px;
+      cursor: pointer;
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--on-surface-variant);
+      transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+
+    .city-link:hover {
+      color: var(--on-surface);
+    }
+
+    .city-link.is-active {
+      color: var(--on-surface);
+      border-bottom-color: var(--outline);
+    }
+
+    /* Collapsible secondary notes */
+    details.inline-notes {
+      border-top: var(--rule-stone);
+      border-bottom: var(--rule-stone);
+      padding: var(--space-md) 0;
+    }
+
+    details.inline-notes summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    details.inline-notes summary::-webkit-details-marker {
+      display: none;
+    }
+
+    /* Footer Colophon */
+    .colophon {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-lg);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      gap: var(--space-xl);
+    }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity var(--dur-long) var(--ease-out), transform var(--dur-long) var(--ease-out);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Container queries for detail plates */
+    .plate-wrap { container-type: inline-size; }
+    @container (min-width: 420px) {
+      .plate-two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-md);
+      }
+    }
+    @container (max-width: 419px) {
+      .plate-two-col {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .chapter-header,
+      .split-editorial,
+      .split-reverse,
+      .matcha-stage,
+      .atlas-layout,
+      .colophon {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-lg);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        grid-template-columns: minmax(0, 1fr);
+        padding: var(--space-md);
+        gap: var(--space-xl);
+      }
+      .title-block {
+        padding: var(--space-lg) 0;
+      }
+      .nav-links {
+        gap: var(--space-md);
+      }
+      #atlas-svg, .map-frame {
+        height: 340px;
+        min-height: 340px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-grid">
+
+    <header class="top-nav">
+      <span class="label">Adorable Caro · Monograph</span>
+      <nav aria-label="Primary chapters">
+        <ul class="nav-links label">
+          <li><a href="#routine">Lifestyle</a></li>
+          <li><a href="#matcha">Matcha</a></li>
+          <li><a href="#ventures">N9 &amp; Sensu</a></li>
+          <li><a href="#style">Fashion</a></li>
+          <li><a href="#atlas">Vlog Atlas</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="title-block">
+      <h1 class="display">Adorable Caro: Real <em>Energy</em>, Quiet Craft</h1>
+      <span class="label kicker">Frankfurt · Content Entrepreneurship · Fashion &amp; Matcha Archive</span>
+      <p class="lede">
+        Across twelve years of German digital culture, Caroline—known online as Adorable Caro—has evolved from candid teenage car vlogs to leading an in-house fashion house, a home-ritual label, and a nationwide Starbucks Germany beverage launch. This interactive profile charts her daily habits, design methodology, matcha venture, and sixteen-city vlog footprint.
+      </p>
+
+      <div class="metrics-row">
+        <div class="ruled-top">
+          <span class="label">Digital Tenure</span>
+          <div class="value">12 Years</div>
+          <span class="note">Sunday vlog ritual, TikTok &amp; podcasting</span>
+        </div>
+        <div class="ruled-top">
+          <span class="label">N9 Studio Headcount</span>
+          <div class="value">14–15</div>
+          <span class="note">In-house design, sourcing &amp; content team</span>
+        </div>
+        <div class="ruled-top">
+          <span class="label">Daily Step Baseline</span>
+          <div class="value">12k–15k</div>
+          <span class="note">Walking pad work blocks &amp; Dog walks with Sky</span>
+        </div>
+        <div class="ruled-top">
+          <span class="label">Vlog &amp; Shoot Hubs</span>
+          <div class="value">16 Cities</div>
+          <span class="note">Frankfurt HQ to Cape Town, Tokyo &amp; Cannes</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER I: LIFESTYLE, ROUTINE & REALITY -->
+    <section id="routine" class="chapter reveal">
+      <div class="chapter-header">
+        <div class="chapter-index">
+          <span class="label">Chapter I · Lifestyle &amp; Vlogs</span>
+          <span class="kicker label">Sunday Ritual &amp; Reality</span>
+        </div>
+        <div>
+          <h2>A candid rhythm between <em>discipline</em> and emotional reset</h2>
+          <p>
+            Caroline’s audience calls her weekly uploads their Sunday ritual—watched on gym treadmills, over coffee, or during apartment resets. What distinguishes her vlogs from hyper-polished influencer feeds is what she calls the intersection of “real energy and aesthetic”: sharing 16-hour screen-time admissions, coaching reflections on people-pleasing, and quiet breaks from social media alongside luxury press trips.
+          </p>
+          <p>
+            After stepping back from unsustainable daily Vlogmas marathons to protect her mental bandwidth and personal life, she rebuilt her weekdays around structured “habit stacking,” refined-sugar resets, non-heat hair recovery (sock curls, rosemary-mint scalp oiling, and silk bonnets), and long morning walks with her French bulldog, Sky.
+          </p>
+        </div>
+      </div>
+
+      <div class="split-editorial">
+        <div>
+          <span class="label">Interactive Weekly Cadence</span>
+          <p class="muted" style="margin-top: var(--space-xs);">
+            Select any block below to inspect how Caro structures movement, N9 office hours, and recovery across a typical week.
+          </p>
+          <div class="routine-grid" id="routine-grid" role="group" aria-label="Weekly schedule selector"></div>
+
+          <div class="pull-quote">
+            <blockquote>“Money isn’t everything, and you don’t have to do everything—I stopped trying to be overly perfect on camera because real life doesn’t look like a curated moodboard.”</blockquote>
+            <span class="label kicker">On canceling Vlogmas burnout &amp; prioritizing presence</span>
+          </div>
+        </div>
+
+        <div class="stone-plate plate-wrap" id="routine-detail" aria-live="polite">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER II: STARBUCKS MATCHA & THE MATCHA BUSINESS -->
+    <section id="matcha" class="chapter reveal">
+      <div class="chapter-header">
+        <div class="chapter-index">
+          <span class="label">Chapter II · The Matcha Journey</span>
+          <span class="kicker label">Five-Year Full Circle</span>
+        </div>
+        <div>
+          <h2>From self-proclaimed matcha skeptic to every Starbucks in <em>Germany</em></h2>
+          <p>
+            Five years before her beverage hit menus nationwide, Caroline filmed herself wishing she were “that girl” who genuinely liked matcha—at the time, low-grade blends tasted “fishy” to her. The shift began in New York in 2023, deepened in London when she and her sister Doja tracked down ceremonial-grade whisks and sieves (inspired by Jenki Matcha), and solidified in Kyoto and Osaka tea houses.
+          </p>
+          <p>
+            When Starbucks Germany invited her to pitch her own creation, she wanted something unexpected yet crowd-pleasing—avoiding predictable mango or strawberry variants. At the very first Berlin tasting, she spontaneously proposed pairing vanilla coconut matcha with an <em>almond cold foam</em> crown. Months later, during a six-course dinner in Cape Town, she received the confirmation text and broke down in tears. Following her nationwide launch, she teased the next step in Tokyo: her own ceremonial line, <em>Senso Matcha</em>.
+          </p>
+        </div>
+      </div>
+
+      <div class="matcha-stage">
+        <div class="glass-canvas-wrap">
+          <span class="label" style="margin-bottom: var(--space-sm);">Architectural Drink Schematic — Click a Layer</span>
+          <svg class="matcha-svg" viewBox="0 0 320 380" role="img" aria-label="Interactive four-layer diagram of the Adorable Caro Starbucks Iced Vanilla Coconut Matcha with Almond Cold Foam">
+            <!-- Outer tall cup silhouette -->
+            <polygon points="75,55 245,55 225,345 95,345" fill="none" stroke="var(--outline)" stroke-width="1.5"/>
+            <!-- Straw -->
+            <line x1="196" y1="15" x2="176" y2="335" stroke="var(--outline)" stroke-width="2"/>
+            <!-- Layer 1: Almond Cold Foam -->
+            <g class="layer-hit" onclick="selectMatchaLayer(0)" tabindex="0" role="button" aria-label="Inspect Almond Cold Foam layer">
+              <polygon id="svg-layer-0" points="78,62 242,62 238,120 82,120" fill="var(--surface-container-low)" stroke="var(--outline)" stroke-width="1"/>
+              <text x="160" y="95" text-anchor="middle" font-family="Jost, sans-serif" font-size="11" letter-spacing="2" fill="var(--on-surface)">ALMOND COLD FOAM</text>
+            </g>
+            <!-- Layer 2: Ceremonial Matcha -->
+            <g class="layer-hit" onclick="selectMatchaLayer(1)" tabindex="0" role="button" aria-label="Inspect Ceremonial Matcha layer">
+              <polygon id="svg-layer-1" points="82,124 238,124 233,205 87,205" fill="var(--data-3)" stroke="var(--outline)" stroke-width="1"/>
+              <text x="160" y="168" text-anchor="middle" font-family="Jost, sans-serif" font-size="11" letter-spacing="2" fill="var(--on-primary)">ICED MATCHA SHOT</text>
+            </g>
+            <!-- Layer 3: Coconut Milk + Ice -->
+            <g class="layer-hit" onclick="selectMatchaLayer(2)" tabindex="0" role="button" aria-label="Inspect Coconut Milk layer">
+              <polygon id="svg-layer-2" points="87,209 233,209 229,292 91,292" fill="var(--surface-container)" stroke="var(--outline)" stroke-width="1"/>
+              <!-- Ice cube outlines -->
+              <rect x="108" y="222" width="26" height="24" fill="none" stroke="var(--secondary)" stroke-width="1"/>
+              <rect x="148" y="236" width="28" height="24" fill="none" stroke="var(--secondary)" stroke-width="1"/>
+              <rect x="188" y="218" width="24" height="22" fill="none" stroke="var(--secondary)" stroke-width="1"/>
+              <text x="160" y="278" text-anchor="middle" font-family="Jost, sans-serif" font-size="11" letter-spacing="2" fill="var(--on-surface)">COCONUT MILK</text>
+            </g>
+            <!-- Layer 4: Vanilla Syrup -->
+            <g class="layer-hit" onclick="selectMatchaLayer(3)" tabindex="0" role="button" aria-label="Inspect Vanilla Syrup layer">
+              <polygon id="svg-layer-3" points="91,296 229,296 225,342 95,342" fill="var(--secondary)" stroke="var(--outline)" stroke-width="1"/>
+              <text x="160" y="324" text-anchor="middle" font-family="Jost, sans-serif" font-size="11" letter-spacing="2" fill="var(--on-primary)">VANILLA NOTE</text>
+            </g>
+          </svg>
+          <figcaption>
+            <span class="label">Fig. 01 · Official Starbucks Germany Formula</span>
+            Iced Matcha built over coconut milk and vanilla syrup, finished with almond cold foam—available across German stores with custom milk swaps.
+          </figcaption>
+        </div>
+
+        <div>
+          <span class="label">Component Breakdown &amp; Tasting Benchmarks</span>
+          <div class="layer-list" id="matcha-layer-list" style="margin-top: var(--space-sm);"></div>
+
+          <div class="stone-plate" id="matcha-layer-detail" style="margin-top: var(--space-md);" aria-live="polite"></div>
+
+          <div style="margin-top: var(--space-xl);">
+            <span class="label">Matcha Quality Ledger (From Vlog Tastings)</span>
+            <table class="atelier-table">
+              <thead>
+                <tr>
+                  <th>Benchmark</th>
+                  <th>Profile</th>
+                  <th>Verdict</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="is-highlight">
+                  <td><strong>Starbucks × Adorable Caro</strong></td>
+                  <td>Ceremonial matcha, vanilla syrup, coconut milk, almond cold foam</td>
+                  <td class="num-lining">Signature Launch</td>
+                </tr>
+                <tr>
+                  <td><strong>Kyoto &amp; Osaka Tea Houses</strong></td>
+                  <td>Whisked thick &amp; creamy ceremonial grade (Oolong Coffee / Matcha Mimi)</td>
+                  <td class="num-lining">Inspo for Senso Matcha</td>
+                </tr>
+                <tr>
+                  <td><strong>London Home Kit (Jenki)</strong></td>
+                  <td>Sifted ceremonial scoop, hot water whisking, almond milk over ice</td>
+                  <td class="num-lining">Daily Home Standard</td>
+                </tr>
+                <tr>
+                  <td><strong>Supermarket Oat Matcha (0.8%)</strong></td>
+                  <td>Oat-heavy blend with negligible green tea; salty/cheesy aftertaste</td>
+                  <td class="num-lining">0/10 to 4/10 (Fail)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER III: N9 FASHION, SENSU & BRAND PORTFOLIO -->
+    <section id="ventures" class="chapter reveal">
+      <div class="chapter-header">
+        <div class="chapter-index">
+          <span class="label">Chapter III · Brand Architecture</span>
+          <span class="kicker label">N9, Sensu &amp; Collaborations</span>
+        </div>
+        <div>
+          <h2>Built in-house: <em>N9</em> apparel, Sensu home rituals &amp; angel bets</h2>
+          <p>
+            Unlike typical creator merch lines outsourced to third-party agencies, Caroline and her father operate N9 (Ninety-Nine) entirely in-house. From sourcing raw fabrics and reviewing summer samples to conducting live fittings with her regular size-XL model, Caro personally inspects every garment before sign-off—enforcing a strict rule on extra-long proportions so wearers can shorten hems rather than settle for cropped lengths.
+          </p>
+          <p>
+            Alongside N9’s mature rebrand and Frankfurt pop-up stores, she expanded her entrepreneurial footprint with <strong>Sensu</strong> (home fragrance, Palo Santo holders, affirmation cards, and the teased <em>Senso Matcha</em>), co-created beauty hits with Kaja, hosted luxury experiences for Lounge, and made an angel investment in the coconut water startup Avie.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="btn-row" role="group" aria-label="Filter ventures by category" style="margin-bottom: var(--space-lg);">
+          <button type="button" class="atelier-btn is-active" onclick="filterVentures('all', this)">All Ventures (9)</button>
+          <button type="button" class="atelier-btn" onclick="filterVentures('n9', this)">N9 Fashion</button>
+          <button type="button" class="atelier-btn" onclick="filterVentures('sensu', this)">Sensu &amp; Matcha</button>
+          <button type="button" class="atelier-btn" onclick="filterVentures('collab', this)">Collabs &amp; Angel</button>
+        </div>
+
+        <div class="card-grid" id="ventures-grid"></div>
+      </div>
+    </section>
+
+    <!-- CHAPTER IV: FASHION TRENDS & STYLE PLAYBOOK -->
+    <section id="style" class="chapter reveal">
+      <div class="chapter-header">
+        <div class="chapter-index">
+          <span class="label">Chapter IV · Style Playbook</span>
+          <span class="kicker label">Summer 2026 &amp; Winter Chic</span>
+        </div>
+        <div>
+          <h2>“Nobody cares—wear what makes you feel <em>good</em>”</h2>
+          <p>
+            Caro’s seasonal style guides deliberately reject rigid fashion labels. One day she leans Parisian or New York editorial; the next, resort-ready or classic corporate. Her wardrobe rule balances investment staples—cashmere knits, silk shirts, and tailored linen—with trend accents that survive more than one season.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="btn-row" role="group" aria-label="Select seasonal style guide" style="margin-bottom: var(--space-xl);">
+          <button type="button" class="atelier-btn is-active" onclick="setSeason('summer', this)">Summer Trends 2026</button>
+          <button type="button" class="atelier-btn" onclick="setSeason('winter', this)">Winter · Effortlessly Chic</button>
+        </div>
+
+        <div id="playbook-container" aria-live="polite"></div>
+
+        <details class="inline-notes" style="margin-top: var(--space-xl);">
+          <summary class="label">
+            <span>Beauty Cabinet &amp; Hair Recovery Notes (From GRWM Vlogs)</span>
+            <span>Expand Index +</span>
+          </summary>
+          <div class="playbook-grid" style="padding-top: var(--space-md);">
+            <div class="ruled-top">
+              <span class="label">Signature Scents &amp; Lips</span>
+              <p class="muted" style="margin-top: var(--space-xs);">
+                Daily fragrance rotation led by Parfums de Marly <em>Valaya</em> (plus its hair mist). Favorite lipstick: Hermès Shade 13 (repurchased three times), paired with her sold-out Kaja Nude &amp; Rose Lip Kits, YSL Kiss Kiss Shine 02, and Dr. Emi Lip Tint.
+              </p>
+            </div>
+            <div class="ruled-top">
+              <span class="label">Complexion &amp; Glow</span>
+              <p class="muted" style="margin-top: var(--space-xs);">
+                Achieved a 100/100 scanner score in a live skin analysis. Relies on Drunk Elephant Aminoglaze serum, Caudalie Firming Night Cream, Milk Hydro Grip / cushion liquid blush, Westman Atelier contour stick (Truffle) &amp; blush (Chouchette), SPF reapplication sticks, and brown Better Than Sex mascara.
+              </p>
+            </div>
+            <div class="ruled-top">
+              <span class="label">Non-Heat Hair Journey</span>
+              <p class="muted" style="margin-top: var(--space-xs);">
+                Removed tape-in extensions to grow her natural length using Rosemary Mint scalp oil with a massager, Redken overnight serum, Detox shampoo, Living Proof Flex hairspray for baby hairs, and overnight sock curls wrapped in a silk bonnet.
+              </p>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- CHAPTER V: VLOG GEOGRAPHY & TRAVEL ATLAS -->
+    <section id="atlas" class="chapter reveal">
+      <div class="chapter-header">
+        <div class="chapter-index">
+          <span class="label">Chapter V · Global Footprint</span>
+          <span class="kicker label">16 Cities on Camera</span>
+        </div>
+        <div>
+          <h2>From <em>Frankfurt</em> HQ to Cape Town sets and Kyoto tea counters</h2>
+          <p>
+            Across her vlogs, geography mirrors business momentum: N9 campaigns in South Africa and Mallorca, Dior and Cannes appearances in Italy and France, sister reunions in London and Miami, and the Tokyo-to-Singapore corridor where her matcha journey crystallized.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="btn-row" role="group" aria-label="Filter map destinations" style="margin-bottom: var(--space-lg);">
+          <button type="button" class="atelier-btn is-active" onclick="filterAtlas('all', this)">All Stops (16)</button>
+          <button type="button" class="atelier-btn" onclick="filterAtlas('brand', this)">N9 &amp; Campaigns</button>
+          <button type="button" class="atelier-btn" onclick="filterAtlas('matcha', this)">Matcha Milestones</button>
+          <button type="button" class="atelier-btn" onclick="filterAtlas('trips', this)">Girls &amp; Family Trips</button>
+        </div>
+
+        <div class="atlas-layout">
+          <figure>
+            <div class="map-frame">
+              <svg id="atlas-svg" viewBox="0 0 820 440" role="img" aria-label="Interactive vector world map of Adorable Caro vlog and campaign cities"></svg>
+            </div>
+            <figcaption>
+              <span class="label">Fig. 02 · Vector Cartography (Natural Earth 50m)</span>
+              Boundaries: Natural Earth (public domain). Dashed trajectories trace outbound journeys from Frankfurt HQ. Select any pin or city index below to inspect the vlog record.
+            </figcaption>
+          </figure>
+
+          <div class="stone-plate plate-wrap" id="atlas-detail" aria-live="polite">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="city-index" id="city-index" role="group" aria-label="City quick index"></div>
+      </div>
+    </section>
+
+    <footer class="colophon">
+      <div>
+        <span class="label">Archive Colophon</span>
+        <span class="kicker label">Grounded Source Record</span>
+      </div>
+      <div>
+        <p class="muted">
+          Compiled and translated into English exclusively from Caroline’s (“Adorable Caro”) YouTube channel transcripts—including her Starbucks Matcha development diary, N9 team and studio vlogs, Summer 2026 &amp; Winter style guides, candid Q&amp;As, and international travel diaries (2024–2026). All figures, quotes, product names, and city milestones reflect direct statements from the source transcripts.
+        </p>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    /* ==========================================================
+       1. DATA MODELS (All strings in backtick literals)
+       ========================================================== */
+
+    const ROUTINE_DAYS = [
+      {
+        id: `morning`,
+        day: `Daily AM`,
+        tag: `Habit Stack`,
+        focus: `15-Min Triple Stack`,
+        intensity: 88,
+        summary: `Starts every day at home with a structured 15-minute habit stack designed to wake up the body before touching social feeds.`,
+        blocks: [
+          { label: `Movement & Tech`, val: `Walking Pad + Vibration Plate + Shark/Rosental Red-Light LED Mask while listening to daily affirmations.` },
+          { label: `Hydration & Gut`, val: `Warm fennel-anise-caraway tea, BrainEffect Daily Gut + Collagen Iced Coffee (10g collagen, ~10g protein), or Vital Proteins.` },
+          { label: `Non-Negotiable`, val: `Making the bed immediately—no matter how packed the office calendar is—followed by walking Sky.` }
+        ]
+      },
+      {
+        id: `mon`,
+        day: `Monday`,
+        tag: `Pilates`,
+        focus: `Studio & Office Reset`,
+        intensity: 75,
+        summary: `Kickstarts the week with morning Pilates before transitioning into N9 leadership meetings, sample approvals, and Google Calendar sprints.`,
+        blocks: [
+          { label: `Training`, val: `Morning Pilates session (after testing 6:45 AM Barry's and noting it spiked cortisol and inflammation).` },
+          { label: `Work Focus`, val: `N9 team syncs, reviewing product samples, and coaching sessions.` },
+          { label: `Nutrition`, val: `High-protein yogurt bowl with skyr, chia pudding, kiwi, homemade granola, passionfruit, blueberries & pumpkin seeds.` }
+        ]
+      },
+      {
+        id: `tue`,
+        day: `Tuesday`,
+        tag: `Cardio`,
+        focus: `Kindle Cardio & Production`,
+        intensity: 70,
+        summary: `Combines steady-state gym cardio with reading on her Kindle ("multitasking makes the time fly") and creative TikTok/reel production.`,
+        blocks: [
+          { label: `Training`, val: `Cardio block at the gym while reading (e.g., reaching 36% of her Magnolia book in 1.5 weeks).` },
+          { label: `Work Focus`, val: `Filming GRWM content, editing Reels, and reviewing Sensu / Advent Calendar logistics.` },
+          { label: `Step Count`, val: `12,000–15,000 steps accumulated via walking pad work calls and evening walks.` }
+        ]
+      },
+      {
+        id: `wed`,
+        day: `Wednesday`,
+        tag: `Pilates`,
+        focus: `Fittings & Team Culture`,
+        intensity: 82,
+        summary: `Midweek balance between Pilates, XL-model N9 garment fittings with Bea and Alisea, and hands-on team culture management.`,
+        blocks: [
+          { label: `Training`, val: `Pilates class + evening strolls with Sky.` },
+          { label: `Work Focus`, val: `Size-inclusive garment grading (leather pants, Breeze collection, Lounge pants) without external agencies.` },
+          { label: `Dinner Note`, val: `Low-friction meal prep: Hot honey beef bowl, salmon/cottage cheese snack plates, or crispy Dean&David bowl.` }
+        ]
+      },
+      {
+        id: `thu`,
+        day: `Thursday`,
+        tag: `Barry's`,
+        focus: `Double-Floor Strength`,
+        intensity: 95,
+        summary: `High-output evening Barry's Bootcamp session—shifted from early morning to evening to keep stress hormones balanced.`,
+        blocks: [
+          { label: `Training`, val: `Barry's Bootcamp (Double Floor & strength training focus; minimal HIIT sprints).` },
+          { label: `Hair Strategy`, val: `Scheduled on hair-wash or "hair-recycling" days; uses Living Proof Flex spray and Taft dry shampoo.` },
+          { label: `Evening`, val: `Girls' dinner or catch-up with Noel, Sophie, and Shayan.` }
+        ]
+      },
+      {
+        id: `fri`,
+        day: `Friday`,
+        tag: `Pilates`,
+        focus: `Studio Shoots & Wrap`,
+        intensity: 78,
+        summary: `Full studio shoot days for new N9 capsules or brand campaigns, closed out with intentional screen-free wind-down.`,
+        blocks: [
+          { label: `Training`, val: `Morning Pilates before hair & makeup call time.` },
+          { label: `Work Focus`, val: `On-set creative direction with the 14–15 person N9 crew, business portraits, and weekend reel pre-shoots.` },
+          { label: `Ritual`, val: `Burning Sensu White Pear incense in the kitchen to clear cooking aromas and reset the nervous system.` }
+        ]
+      },
+      {
+        id: `wknd`,
+        day: `Sat / Sun`,
+        tag: `Gym / Rest`,
+        focus: `Baking Era & Sunday Upload`,
+        intensity: 62,
+        summary: `Deliberate slow mornings—baking gluten-free/refined-sugar-free treats, allowing herself to be bored, and connecting with viewers on YouTube.`,
+        blocks: [
+          { label: `Training`, val: `Strength training at the gym or restorative Pilates, plus long outdoor walks.` },
+          { label: `Baking Era`, val: `Chickpea blondies, brown-butter or Adorable Caro gluten-free cookies, and high-protein Lotus cheesecake.` },
+          { label: `Community`, val: `Reading Sunday vlog comments and reposting viewer workout & coffee stories.` }
+        ]
+      }
+    ];
+
+    const MATCHA_LAYERS = [
+      {
+        id: 0,
+        title: `Almond Cold Foam`,
+        role: `The Spontaneous Signature Twist`,
+        detail: `During the very first tasting, Caro rejected conventional fruity pairings and spontaneously asked: "What if we try almond as cold foam?" That split-second idea turned a classic iced drink into something people had never tasted before.`,
+        quote: `"Elegant, yet a little crazy—almond cold foam was the unexpected twist that made everyone say: approved."`
+      },
+      {
+        id: 1,
+        title: `Ceremonial Matcha Base`,
+        role: `Five Years From Skeptic to Purist`,
+        detail: `Having hated low-grade matcha that tasted "fishy," Caro insisted the drink genuinely taste like real matcha rather than masked sugar. Inspired by her London starter kit and Kyoto/Osaka rituals, the ceremonial green tea note sits clearly at the heart of the cup.`,
+        quote: `"If you think you hate matcha, you've just been drinking the wrong grade."`
+      },
+      {
+        id: 2,
+        title: `Coconut Milk Body`,
+        role: `Creamy Foundation (Customizable)`,
+        detail: `Caro specifically requested coconut milk over oat milk—having repeatedly criticized heavy oat-milk blends for drowning out matcha flavor. In Germany, customers can still swap the milk base in-store while keeping the signature foam.`,
+        quote: `"It clearly tastes of coconut, which I wished for—and I'm so happy about how creamy it turned out."`
+      },
+      {
+        id: 3,
+        title: `Vanilla Syrup Note`,
+        role: `Universal Crowd-Pleasing Balance`,
+        detail: `Caro's personal favorite pairing is vanilla matcha, yet she refused to launch a plain vanilla version. Here, a measured touch of vanilla syrup bridges the earthy matcha and nutty almond foam so both purists and newcomers fall for it.`,
+        quote: `"With the vanilla note, it appeals to the broad crowd while still feeling genuinely special."`
+      }
+    ];
+
+    const VENTURES = [
+      {
+        category: `n9`,
+        catLabel: `N9 Fashion`,
+        title: `The In-House Tailoring Model`,
+        status: `Core Brand`,
+        desc: `Co-led with her father and a 14–15 person Frankfurt team. Every fabric is sourced internally, sampled in-house, and tested on regular and XL fit models before Caro approves production.`,
+        specs: [`Rule: Extra-long cuts (shorten, never lengthen)`, `Rebrand: Mature, elevated silhouettes (Nov/Dec shoot)`, `Retail: Online drops + Frankfurt & travel pop-ups`]
+      },
+      {
+        category: `n9`,
+        catLabel: `N9 Fashion`,
+        title: `Ella & Breeze Collections`,
+        status: `Summer Capsules`,
+        desc: `Signature warm-weather launches pairing textured embroidery and resort draping—specifically designed to double as daytime separates or evening resort looks.`,
+        specs: [`Ella Set: Custom-fit white embroidery maxi skirt + bandeau top`, `Breeze Line: Textured Breeze Dress & breathable summer tops`, `Swim: Gaja, Niro & Push-Up bikinis shot in Cape Town`]
+      },
+      {
+        category: `n9`,
+        catLabel: `N9 Fashion`,
+        title: `Fay, Dash & Everyday Knitwear`,
+        status: `Autumn / Winter`,
+        desc: `Structured tailoring and figure-flattering lounge sets built to transition from office workdays to pointed-boot evening outfits.`,
+        specs: [`Fay Cardigan & Fay Pants: Snatched silhouette, straight-leg knit`, `Tailoring: Dash Blazer, Romy Set, Mellow & East Pants`, `Jewelry: Nara Necklace, matching ring & charm necklaces`]
+      },
+      {
+        category: `sensu`,
+        catLabel: `Sensu Home`,
+        title: `Sensu Ritual Objects`,
+        status: `Own Label + Prime`,
+        desc: `Caro's home and mindfulness brand built around sensory calm, morning grounding, and elevated everyday objects—sold on Sensu's webshop and select Amazon Prime listings.`,
+        specs: [`Fragrance: White Pear incense, Virgo candles & heavy-glass Palo Santo holders`, `Auto: Car diffusers (rapid sell-out, 2 shades remaining)`, `Mindset: "Creating the life of my dreams" mugs & affirmation card decks`]
+      },
+      {
+        category: `sensu`,
+        catLabel: `Matcha Launch`,
+        title: `Starbucks Germany × Adorable Caro`,
+        status: `Nationwide Rollout`,
+        desc: `A full-circle collaboration five years in the making: pitched herself, confirmed while dining in Cape Town, photographed in Berlin, and launched in every German Starbucks store.`,
+        specs: [`Recipe: Iced Vanilla Coconut Matcha + Almond Cold Foam`, `Development: Spontaneously invented in tasting #1`, `Milestone: Caro's face & drink featured across Germany`]
+      },
+      {
+        category: `sensu`,
+        catLabel: `Matcha Venture`,
+        title: `Senso Matcha (Teased Line)`,
+        status: `In Development`,
+        desc: `Sparked by her Kyoto and Osaka tastings—where baristas whisked thick, creamy ceremonial matcha amid 90-minute queues—Caro teased launching her own matcha under the Senso umbrella.`,
+        specs: [`Standard: Strictly ceremonial grade (zero fishy undertone)`, `Origin Inspo: Tokyo, Kyoto & Osaka tea rituals`, `Quote: "I'd love Senso Matcha coming soon—it will come"`]
+      },
+      {
+        category: `collab`,
+        catLabel: `Beauty Collab`,
+        title: `Kaja Beauty Lip Kits`,
+        status: `Sold Out & Restocked`,
+        desc: `Two-stage product co-creation with Kaja Beauty. After her signature Nude lip liner + gloss kit repeatedly sold out, she co-developed a second, more universally wearable rose shade.`,
+        specs: [`Edition 01: Signature Adorable Caro Nude (liner + gloss)`, `Edition 02: Expanded Rose shade for broader skin tones`, `Retail: Featured at dedicated Kaja pop-up counters`]
+      },
+      {
+        category: `collab`,
+        catLabel: `Angel Investment`,
+        title: `Avie Coconut Water`,
+        status: `Startup Investor`,
+        desc: `Caro's angel investment in the beverage startup Avie, regularly taste-tested on camera with friends Noel, Sophie, and Shayan during office and studio days.`,
+        specs: [`Flavors: Pure Coconut & Watermelon`, `Role: Equity investor & organic brand champion`, `Vibe: Positioned as her clean post-workout hydration staple`]
+      },
+      {
+        category: `collab`,
+        catLabel: `Limited Drops`,
+        title: `Advent Calendar, Lounge & Dual`,
+        status: `Annual & Capsules`,
+        desc: `Curated limited editions uniting Caro's favorite brands—from a 3-month "Blush and Breeze" capsule with Jana/Dual to a luxury English countryside Lounge event and her annual Advent Calendar.`,
+        specs: [`Advent Calendar: Premium limited editions across food, beauty & lifestyle`, `Lounge: Limited collection + countryside estate hosting`, `Strict Filter: Turns down lucrative sponsors (like AG1) if she dislikes the taste`]
+      }
+    ];
+
+    const SEASON_DATA = {
+      summer: {
+        title: `Summer Trends 2026: Two Worlds, One Wardrobe`,
+        intro: `Caro divides summer dressing into Colorful Girlies and Neutral Girlies—and insists you never have to pick just one. Her filter is longevity: pieces she wore last year, wears in 36°C Frankfurt heat now, and knows will still feel chic next summer.`,
+        blocks: [
+          {
+            heading: `Color Direction`,
+            tags: [`Butter Yellow`, `Teal Blue`, `Coral Red`, `Magenta Pink`, `Cream & Espresso`],
+            body: `Loud statement hues (butter yellow, coral, teal, magenta) sit right beside timeless neutrals—black, crisp white, chocolate brown, and soft cream drifting toward butter yellow.`
+          },
+          {
+            heading: `Key Silhouettes & Prints`,
+            tags: [`Polka Dots`, `Navy Stripes`, `Asymmetry`, `Pucci Color-Block`],
+            body: `Polka-dot bikinis and Reformation-style dresses channel French Riviera energy. Navy-and-white stripes bring grown-up Ralph Lauren polish, while asymmetrical tops and colorful Capri-ready prints add edge.`
+          },
+          {
+            heading: `Fabrics & Craft`,
+            tags: [`Lace Over Everything`, `Embroidery`, `Breathable Linen`],
+            body: `Lace tops and silk-lace skirts transition smoothly into autumn (worn selectively in peak heat). White embroidered maxi skirts—like N9's Ella Collection—and linen trousers remain non-negotiable summer staples.`
+          },
+          {
+            heading: `Accessories & Footwear`,
+            tags: [`Raffia Hats & Bags`, `Oversized Bangles`, `Black Havaianas`],
+            body: `Four years running with raffia totes (Loewe, Celine, COS, Zara), sculptural bangles in gold, silver, or horn to elevate basics, and black Havaianas over beige.`
+          }
+        ]
+      },
+      winter: {
+        title: `Winter Guide: Effortlessly Chic Layering`,
+        intro: `Built around "old-money ease" and practical warmth—using monochrome bases, elevated textures, and smart accessories so a single statement coat looks different every day of the week.`,
+        blocks: [
+          {
+            heading: `Color & Knitwear`,
+            tags: [`Maroon Red`, `Neutral Monochrome`, `Knit T-Shirts`],
+            body: `Beyond classic burgundy sits Maroon Red—a rich, brownish red striking on brunettes and dark-haired women. Swap basic cotton tees for structured knit T-shirts (contrast trims or buttoned V-necks) for instant polish.`
+          },
+          {
+            heading: `Cardigans, Silk & Coats`,
+            tags: [`LilySilk Cashmere`, `Silk Shirts`, `Onion Layering`],
+            body: `Cable-knit and fine-knit cashmere cardigans paired with flowy satin skirts, corporate-ready brown silk shirts with denim, and baggy jeans + pointed ankle boots layered under a blazer and faux-fur coat.`
+          },
+          {
+            heading: `Winter Accessories`,
+            tags: [`Chunky Cashmere Scarves`, `Monogram Gloves`, `Quiet Hermès`],
+            body: `Three essential scarves—black, gray, and off-white (ideally cashmere, Acne Studios to ASOS)—paired with warm gloves (Gucci monogram) and understated neutral bags that whisper "if you know, you know."`
+          },
+          {
+            heading: `Festive Footwear & Finish`,
+            tags: [`Socks & Peep-Toe Heels`, `Caramel Highlights`, `Sleek Bun`],
+            body: `Festive indoor dinners call for sheer/fine socks with pointed peep-toe heels ("Slavic girls" inspo). Finish every cold-weather look with SPF, lip balm ("no crusty lips"), and a sleek bun or French braid against rain frizz.`
+          }
+        ]
+      }
+    };
+
+    const VLOG_CITIES = [
+      {
+        id: `frankfurt`,
+        name: `Frankfurt`,
+        country: `Germany`,
+        coords: [8.6821, 50.1109],
+        cat: `brand`,
+        catLabel: `HQ & Origins`,
+        era: `Home Base · Ongoing`,
+        highlight: `N9 Headquarters, Pop-Up Stores & Childhood MTZ Roots`,
+        notes: `Caroline's home base ("Frankie Town"). Houses the 14–15 person N9 office, garment fittings, Sensu logistics, Barry's Bootcamp & Pilates studios, Frankfurt Pop-Ups, and nearby Main-Taunus-Zentrum (MTZ)—where after-school Starbucks runs with Sophie sparked a lifelong brand love.`
+      },
+      {
+        id: `berlin`,
+        name: `Berlin`,
+        country: `Germany`,
+        coords: [13.4050, 52.5200],
+        cat: `matcha`,
+        catLabel: `Matcha Campaign`,
+        era: `Starbucks Shoot`,
+        highlight: `Official Starbucks Germany Campaign Shoot`,
+        notes: `After sleepless excitement the night before, Caro flew to Berlin to shoot all video creatives and the nationwide store campaign image inside a Berlin Starbucks coffeehouse—styled on set with her glam team.`
+      },
+      {
+        id: `hamburg`,
+        name: `Hamburg`,
+        country: `Germany`,
+        coords: [9.9937, 53.5511],
+        cat: `brand`,
+        catLabel: `Events & Pop-Ups`,
+        era: `48h Trips & Meet-ups`,
+        highlight: `Dual × Jana Launch, Andre Dining & Community Meet-and-Greet`,
+        notes: `Frequent 48-hour trips staying with Kelly, celebrating the Blush and Breeze capsule with Jana, dining on tempeh salads at Andre, and hosting a Hamburg meet-and-greet where fans wore N9 charm necklaces.`
+      },
+      {
+        id: `cape_town`,
+        name: `Cape Town`,
+        country: `South Africa`,
+        coords: [18.4241, -33.9249],
+        cat: `matcha`,
+        catLabel: `N9 Shoot + Starbucks News`,
+        era: `2-Week Production`,
+        highlight: `N9 Swim Campaign & The Life-Changing Dinner Text`,
+        notes: `Spent Week 1 shooting the N9 Swim Campaign with her team and Week 2 with Noel and her sister (Oranjezicht Market, Pilates, astrology reading). During a 6-course dinner filmed by Doja, Caro received the text confirming her Starbucks drink—and cried tears of joy.`
+      },
+      {
+        id: `tokyo`,
+        name: `Tokyo & Kyoto`,
+        country: `Japan`,
+        coords: [139.6917, 35.6895],
+        cat: `matcha`,
+        catLabel: `Matcha Revelation`,
+        era: `Family & Tea Houses`,
+        highlight: `Ceremonial Matcha Rituals & "Senso Matcha" Teaser`,
+        notes: `Traveled across Tokyo, Kyoto, and Osaka (Don Quijote, FamilyMart egg tastings, vintage shopping). Waiting 30–90 minutes at Kyoto and Osaka matcha bars converted her completely—inspiring her on-camera teaser: "Senso Matcha coming soon."`
+      },
+      {
+        id: `singapore`,
+        name: `Singapore`,
+        country: `Singapore`,
+        coords: [103.8198, 1.3521],
+        cat: `matcha`,
+        catLabel: `Launch Announcement`,
+        era: `Singapore Diaries`,
+        highlight: `Announcing the Starbucks Drink & Alo Butter Yellow`,
+        notes: `Flew in after island travels with Doja and Mama. Filmed her hotel breakfast buffet tour (blue butterfly-pea nasi lemak, passionfruit bar), bought an Alo tracksuit, and told viewers her Starbucks drink was finally public.`
+      },
+      {
+        id: `london`,
+        name: `London`,
+        country: `United Kingdom`,
+        coords: [-0.1276, 51.5072],
+        cat: `matcha`,
+        catLabel: `Matcha Kit + Lounge Event`,
+        era: `Sister Reunion & Country`,
+        highlight: `Jenki Matcha Starter Kit & English Countryside Lounge Hosting`,
+        notes: `Reunited with Doja for SoulCycle, Notting Hill gluten-free bakeries, and picking up her ceremonial Jenki Matcha whisk-and-sieve starter kit. Separately hosted a luxury Lounge event at a private English countryside estate.`
+      },
+      {
+        id: `nyc`,
+        name: `New York City`,
+        country: `United States`,
+        coords: [-74.0060, 40.7128],
+        cat: `matcha`,
+        catLabel: `2023 Turning Point`,
+        era: `Halloween & Early Matcha`,
+        highlight: `2023 First Matcha Breakthrough & Apollo Bagels`,
+        notes: `In 2023, New York marked the first time Caro ever liked a matcha drink. Returned for Halloween 2024 with the girls—reviewing Apollo Bagels (8/10), Petbow dresses, and spontaneous "Caro's Creation" dessert mixes.`
+      },
+      {
+        id: `miami`,
+        name: `Miami & Bahamas`,
+        country: `United States / Bahamas`,
+        coords: [-80.1918, 25.7617],
+        cat: `trips`,
+        catLabel: `Shopping & MSC Cruise`,
+        era: `Sister Adventures`,
+        highlight: `Design District Matcha Fails, Target Hauls & MSC Gala`,
+        notes: `Shopped Design District (Alo Yoga, The RealReal, Reformation) and Target/Sephora (giant Starbucks protein cups, Kate Spade gummies, sugar cookies) before boarding an MSC cruise to the Bahamas with Doja.`
+      },
+      {
+        id: `mallorca`,
+        name: `Mallorca`,
+        country: `Spain`,
+        coords: [2.6502, 39.5696],
+        cat: `brand`,
+        catLabel: `N9 Team Trip & 26th B-Day`,
+        era: `Finca Retreat`,
+        highlight: `First N9 Team Retreat & 26th Birthday`,
+        notes: `Hosted the entire N9 team at a traditional Mallorcan finca—packing influencer-style goodie bags and letting every employee pick their favorite bikini—plus celebrating her 26th birthday and Pilates retreats.`
+      },
+      {
+        id: `ibiza`,
+        name: `Ibiza`,
+        country: `Spain`,
+        coords: [1.4206, 38.9067],
+        cat: `trips`,
+        catLabel: `Brand Trip`,
+        era: `Summer Press Trip`,
+        highlight: `Personalized Brand Experiences & Behind-the-Scenes Reality`,
+        notes: `Attended a meticulously personalized influencer trip featuring open-air cinema and custom details—praising the production work behind brand trips while addressing online gossip with candor.`
+      },
+      {
+        id: `paris`,
+        name: `Paris`,
+        country: `France`,
+        coords: [2.3522, 48.8566],
+        cat: `trips`,
+        catLabel: `Luxury & Pastries`,
+        era: `2-Part Paris Vlog`,
+        highlight: `Cédric Grolet Taste Test, Hermès & Vintage Shopping`,
+        notes: `Explored Paris with Noel: tasting Cédric Grolet pastries, Hermès shopping, snail pasta and chocolate mousse tastings, and reclaiming romantic Parisian memories on her own terms.`
+      },
+      {
+        id: `milan`,
+        name: `Milan`,
+        country: `Italy`,
+        coords: [9.1900, 45.4642],
+        cat: `brand`,
+        catLabel: `Dior & F1`,
+        era: `Vlogmas & Race Weekend`,
+        highlight: `Dior Press Flight & Formula 1 Weekend`,
+        notes: `Flown to Milan by Dior for Christmas/Vlogmas content shoots at the Dior hub, and returned during F1 race weekend for vintage/luxury eyewear hunting and skin treatments.`
+      },
+      {
+        id: `cannes`,
+        name: `Cannes`,
+        country: `France`,
+        coords: [7.0174, 43.5528],
+        cat: `brand`,
+        catLabel: `Film Festival 2025`,
+        era: `Red Carpet Debut`,
+        highlight: `First Red Carpet at Cannes Film Festival 2025`,
+        notes: `Attended makeup masterclasses, prepped Doja for lunch, and walked her very first Cannes Red Carpet in 2025—recording her pre-carpet nerves and confidence boost.`
+      },
+      {
+        id: `rome`,
+        name: `Rome & Ostuni`,
+        country: `Italy`,
+        coords: [12.4964, 41.9028],
+        cat: `trips`,
+        catLabel: `Festivities & Cooking`,
+        era: `Italian Escapes`,
+        highlight: `Hotel de Russie Rome & Ostuni Pasta Cooking Class`,
+        notes: `Stayed at Le Jardin Hotel de Russie in Rome for festivities (sharing her Natasha Denona & Hermès 13 staples), and spent 3 days in Ostuni with Kelly, Paulina, Sophie, and Shane making arrabbiata pasta.`
+      },
+      {
+        id: `mykonos`,
+        name: `Mykonos`,
+        country: `Greece`,
+        coords: [25.3289, 37.4467],
+        cat: `trips`,
+        catLabel: `Bachelorette`,
+        era: `Girls Trip`,
+        highlight: `Olivia's Bachelorette & N9 Playsuit Preview`,
+        notes: `Celebrated Olivia's bachelorette in a Mykonos villa—testing iced vanilla matcha by the pool, debuting an unreleased N9 playsuit in Old Town, and reflecting on moving toward softer, natural makeup.`
+      }
+    ];
+
+    /* ==========================================================
+       2. ROUTINE INTERACTION
+       ========================================================== */
+    let selectedDayId = `morning`;
+
+    function renderRoutineGrid() {
+      const grid = document.getElementById(`routine-grid`);
+      if (!grid) return;
+      grid.innerHTML = ROUTINE_DAYS.map(function (d) {
+        const activeClass = d.id === selectedDayId ? ` is-selected` : ``;
+        return `<button type="button" class="day-cell${activeClass}" onclick="selectRoutineDay('${d.id}')" aria-pressed="${d.id === selectedDayId}">
+          <div>
+            <span class="day-tag">${d.day}</span>
+            <div class="day-focus">${d.tag}</div>
+          </div>
+          <div class="bar-track" aria-hidden="true">
+            <div class="bar-fill" style="width: ${d.intensity}%;"></div>
+          </div>
+        </button>`;
+      }).join(``);
+    }
+
+    function selectRoutineDay(id) {
+      selectedDayId = id;
+      renderRoutineGrid();
+      const detail = document.getElementById(`routine-detail`);
+      if (!detail) return;
+      const item = ROUTINE_DAYS.find(function (d) { return d.id === id; });
+      if (!item) return;
+
+      detail.innerHTML = `
+        <span class="label" style="color: var(--secondary);">${item.day} · ${item.tag}</span>
+        <h3 style="margin-top: var(--space-xs);">${item.focus}</h3>
+        <p class="muted">${item.summary}</p>
+        <div class="plate-two-col" style="border-top: var(--rule-stone); padding-top: var(--space-md); margin-top: var(--space-md);">
+          ${item.blocks.map(function (b) {
+            return `<div>
+              <span class="label" style="display: block; margin-bottom: var(--space-xs);">${b.label}</span>
+              <p style="font-size: 0.94rem; margin: 0;">${b.val}</p>
+            </div>`;
+          }).join(``)}
+        </div>
+      `;
+    }
+
+    /* ==========================================================
+       3. MATCHA INTERACTION
+       ========================================================== */
+    let selectedMatchaId = 0;
+
+    function selectMatchaLayer(idx) {
+      selectedMatchaId = idx;
+      renderMatchaPanel();
+    }
+
+    function renderMatchaPanel() {
+      const list = document.getElementById(`matcha-layer-list`);
+      const detail = document.getElementById(`matcha-layer-detail`);
+      if (!list || !detail) return;
+
+      list.innerHTML = MATCHA_LAYERS.map(function (layer) {
+        const isSel = layer.id === selectedMatchaId;
+        return `<button type="button" class="layer-item${isSel ? ` is-selected` : ``}" onclick="selectMatchaLayer(${layer.id})" aria-pressed="${isSel}">
+          <span><strong>0${layer.id + 1}.</strong> ${layer.title}</span>
+          <span class="label" style="color: var(--secondary);">${layer.role}</span>
+        </button>`;
+      }).join(``);
+
+      // Update SVG stroke weight to signal selection
+      MATCHA_LAYERS.forEach(function (layer) {
+        const poly = document.getElementById(`svg-layer-${layer.id}`);
+        if (poly) {
+          poly.setAttribute(`stroke-width`, layer.id === selectedMatchaId ? `2.5` : `1`);
+        }
+      });
+
+      const current = MATCHA_LAYERS[selectedMatchaId];
+      if (!current) return;
+      detail.innerHTML = `
+        <span class="label" style="color: var(--secondary);">Layer 0${current.id + 1} · ${current.role}</span>
+        <h3 style="margin-top: var(--space-xs);">${current.title}</h3>
+        <p style="font-size: 0.96rem; margin-bottom: var(--space-sm);">${current.detail}</p>
+        <p class="note" style="font-style: italic; margin: 0;">${current.quote}</p>
+      `;
+    }
+
+    /* ==========================================================
+       4. VENTURES FILTER
+       ========================================================== */
+    function filterVentures(cat, btnEl) {
+      if (btnEl) {
+        const group = btnEl.parentElement;
+        if (group) {
+          group.querySelectorAll(`.atelier-btn`).forEach(function (b) {
+            b.classList.remove(`is-active`);
+          });
+        }
+        btnEl.classList.add(`is-active`);
+      }
+
+      const grid = document.getElementById(`ventures-grid`);
+      if (!grid) return;
+
+      const filtered = cat === `all`
+        ? VENTURES
+        : VENTURES.filter(function (v) { return v.category === cat; });
+
+      grid.innerHTML = filtered.map(function (v) {
+        return `<article class="dossier-card">
+          <div class="card-meta-row">
+            <span class="label" style="color: var(--secondary);">${v.catLabel}</span>
+            <span class="label">${v.status}</span>
+          </div>
+          <h3>${v.title}</h3>
+          <p class="muted" style="margin-bottom: var(--space-xs);">${v.desc}</p>
+          <ul class="spec-list">
+            ${v.specs.map(function (s) { return `<li>${s}</li>`; }).join(``)}
+          </ul>
+        </article>`;
+      }).join(``);
+    }
+
+    /* ==========================================================
+       5. SEASONAL PLAYBOOK SWITCHER
+       ========================================================== */
+    function setSeason(seasonKey, btnEl) {
+      if (btnEl) {
+        const group = btnEl.parentElement;
+        if (group) {
+          group.querySelectorAll(`.atelier-btn`).forEach(function (b) {
+            b.classList.remove(`is-active`);
+          });
+        }
+        btnEl.classList.add(`is-active`);
+      }
+
+      const container = document.getElementById(`playbook-container`);
+      if (!container) return;
+      const data = SEASON_DATA[seasonKey];
+      if (!data) return;
+
+      container.innerHTML = `
+        <div style="margin-bottom: var(--space-lg);">
+          <h3>${data.title}</h3>
+          <p class="muted">${data.intro}</p>
+        </div>
+        <div class="playbook-grid">
+          ${data.blocks.map(function (b) {
+            return `<div class="playbook-block">
+              <span class="label">${b.heading}</span>
+              <div class="swatch-strip">
+                ${b.tags.map(function (t) { return `<span class="atelier-tag">${t}</span>`; }).join(``)}
+              </div>
+              <p style="font-size: 0.95rem; margin-top: var(--space-md); margin-bottom: 0;">${b.body}</p>
+            </div>`;
+          }).join(``)}
+        </div>
+      `;
+    }
+
+    /* ==========================================================
+       6. D3 VECTOR WORLD ATLAS
+       ========================================================== */
+    let atlasFilter = `all`;
+    let selectedCityId = `frankfurt`;
+    let atlasGeoReady = false;
+    let cachedCountries = null;
+
+    function getToken(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function filterAtlas(cat, btnEl) {
+      atlasFilter = cat;
+      if (btnEl) {
+        const group = btnEl.parentElement;
+        if (group) {
+          group.querySelectorAll(`.atelier-btn`).forEach(function (b) {
+            b.classList.remove(`is-active`);
+          });
+        }
+        btnEl.classList.add(`is-active`);
+      }
+
+      const visible = getVisibleCities();
+      if (visible.length > 0 && !visible.some(function (c) { return c.id === selectedCityId; })) {
+        selectedCityId = visible[0].id;
+      }
+      renderCityIndex();
+      renderCityDetail();
+      if (atlasGeoReady) drawAtlas();
+    }
+
+    function getVisibleCities() {
+      if (atlasFilter === `all`) return VLOG_CITIES;
+      return VLOG_CITIES.filter(function (c) { return c.cat === atlasFilter; });
+    }
+
+    function selectCity(id) {
+      selectedCityId = id;
+      renderCityIndex();
+      renderCityDetail();
+      if (atlasGeoReady) drawAtlas();
+    }
+
+    function renderCityIndex() {
+      const idx = document.getElementById(`city-index`);
+      if (!idx) return;
+      const visible = getVisibleCities();
+      idx.innerHTML = visible.map(function (c) {
+        const cls = c.id === selectedCityId ? ` is-active` : ``;
+        return `<button type="button" class="city-link${cls}" onclick="selectCity('${c.id}')">${c.name}</button>`;
+      }).join(``);
+    }
+
+    function renderCityDetail() {
+      const detail = document.getElementById(`atlas-detail`);
+      if (!detail) return;
+      const city = VLOG_CITIES.find(function (c) { return c.id === selectedCityId; });
+      if (!city) return;
+
+      detail.innerHTML = `
+        <span class="label" style="color: var(--secondary);">${city.catLabel} · ${city.country}</span>
+        <h3 style="margin-top: var(--space-xs);">${city.name}</h3>
+        <div class="plate-two-col" style="border-top: var(--rule-stone); border-bottom: var(--rule-stone); padding: var(--space-sm) 0; margin: var(--space-sm) 0 var(--space-md);">
+          <div>
+            <span class="label" style="display: block;">Milestone</span>
+            <span style="font-size: 0.92rem;">${city.highlight}</span>
+          </div>
+          <div>
+            <span class="label" style="display: block;">Vlog Context</span>
+            <span style="font-size: 0.92rem;">${city.era}</span>
+          </div>
+        </div>
+        <p style="font-size: 0.95rem; margin: 0;">${city.notes}</p>
+      `;
+    }
+
+    function drawAtlas() {
+      const svgEl = document.getElementById(`atlas-svg`);
+      if (!svgEl || !cachedCountries || typeof d3 === `undefined`) return;
+
+      const svg = d3.select(svgEl);
+      svg.selectAll(`*`).remove();
+
+      const width = 820;
+      const height = 440;
+      const projection = d3.geoNaturalEarth1()
+        .scale(152)
+        .translate([width / 2, height / 2 + 18]);
+
+      const path = d3.geoPath(projection);
+
+      // Graticule
+      svg.append(`path`)
+        .datum(d3.geoGraticule10())
+        .attr(`class`, `map-graticule`)
+        .attr(`d`, path);
+
+      // Countries
+      svg.append(`g`)
+        .selectAll(`path`)
+        .data(cachedCountries.features)
+        .join(`path`)
+        .attr(`class`, `map-land`)
+        .attr(`d`, path);
+
+      // Routes from Frankfurt HQ
+      const hq = VLOG_CITIES.find(function (c) { return c.id === `frankfurt`; });
+      const visible = getVisibleCities();
+
+      if (hq) {
+        const routes = visible.filter(function (c) { return c.id !== `frankfurt`; }).map(function (c) {
+          return {
+            type: `LineString`,
+            coordinates: [hq.coords, c.coords]
+          };
+        });
+        svg.append(`g`)
+          .selectAll(`path`)
+          .data(routes)
+          .join(`path`)
+          .attr(`class`, `map-route`)
+          .attr(`d`, path);
+      }
+
+      const inkColor = getToken(`--data-1`) || `#111111`;
+      const taupeColor = getToken(`--data-2`) || `#7a5c48`;
+      const bgColor = getToken(`--background`) || `#fafaf8`;
+
+      // Pins
+      const pins = svg.append(`g`)
+        .selectAll(`g`)
+        .data(visible)
+        .join(`g`)
+        .attr(`class`, `map-pin`)
+        .attr(`tabindex`, `0`)
+        .attr(`role`, `button`)
+        .attr(`aria-label`, function (d) { return `${d.name}, ${d.country}`; })
+        .attr(`transform`, function (d) {
+          const p = projection(d.coords);
+          return `translate(${p[0]}, ${p[1]})`;
+        })
+        .on(`click`, function (event, d) {
+          selectCity(d.id);
+        })
+        .on(`keydown`, function (event, d) {
+          if (event.key === `Enter` || event.key === ` `) {
+            event.preventDefault();
+            selectCity(d.id);
+          }
+        });
+
+      // Square markers (Atelier geometry)
+      pins.append(`rect`)
+        .attr(`x`, function (d) { return d.id === selectedCityId ? -6 : -4; })
+        .attr(`y`, function (d) { return d.id === selectedCityId ? -6 : -4; })
+        .attr(`width`, function (d) { return d.id === selectedCityId ? 12 : 8; })
+        .attr(`height`, function (d) { return d.id === selectedCityId ? 12 : 8; })
+        .attr(`fill`, function (d) { return d.id === selectedCityId ? inkColor : taupeColor; })
+        .attr(`stroke`, bgColor)
+        .attr(`stroke-width`, 1.5);
+
+      // Label for active city
+      const activeCity = visible.find(function (c) { return c.id === selectedCityId; });
+      if (activeCity) {
+        const p = projection(activeCity.coords);
+        const tx = p[0] > 660 ? p[0] - 12 : p[0] + 12;
+        const anchor = p[0] > 660 ? `end` : `start`;
+        svg.append(`text`)
+          .attr(`x`, tx)
+          .attr(`y`, p[1] + 4)
+          .attr(`text-anchor`, anchor)
+          .attr(`font-family`, `Jost, sans-serif`)
+          .attr(`font-size`, `11`)
+          .attr(`letter-spacing`, `1.8`)
+          .attr(`fill`, inkColor)
+          .text(activeCity.name.toUpperCase());
+      }
+    }
+
+    function initAtlas() {
+      renderCityIndex();
+      renderCityDetail();
+
+      fetch(`https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json`)
+        .then(function (r) { return r.json(); })
+        .then(function (topo) {
+          if (typeof topojson !== `undefined`) {
+            cachedCountries = topojson.feature(topo, topo.objects.countries);
+            atlasGeoReady = true;
+            drawAtlas();
+          }
+        })
+        .catch(function () {
+          const detail = document.getElementById(`atlas-detail`);
+          if (detail) {
+            const note = document.createElement(`p`);
+            note.className = `note`;
+            note.style.marginTop = `var(--space-sm)`;
+            note.textContent = `Vector map geometry could not be loaded offline; use the city index below to explore all sixteen destinations.`;
+            detail.appendChild(note);
+          }
+        });
+    }
+
+    /* ==========================================================
+       7. REVEAL OBSERVER & BOOT
+       ========================================================== */
+    function initReveals() {
+      const els = document.querySelectorAll(`.reveal`);
+      if (!(`IntersectionObserver` in window)) {
+        els.forEach(function (el) { el.classList.add(`is-visible`); });
+        return;
+      }
+      const io = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(`is-visible`);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+
+      els.forEach(function (el) { io.observe(el); });
+    }
+
+    document.addEventListener(`DOMContentLoaded`, function () {
+      selectRoutineDay(`morning`);
+      selectMatchaLayer(0);
+      filterVentures(`all`, null);
+      setSeason(`summer`, null);
+      initAtlas();
+      initReveals();
+    });
+  </script>
+</body>
+</html>
