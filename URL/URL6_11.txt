@@ -1,6 +1,11 @@
 Final Project: Coconut Smash by Luana 
 https://student324125.github.io/CoconutSmash.html
-Coconut Smash is a browser-based game where players smash coconuts using real hand gestures in front of their
-webcam — no controller needed. It uses MediaPipe HandLandmarker, a machine learning model that tracks hand
-movements in real time, running entirely in the browser. The value is twofold: it makes AI tangible and
-physically experienceable, while simply being fun to play.
+Coconut Smash is a browser-based game where players smash 
+coconuts using real hand gestures in front of their
+webcam — no controller needed. 
+It uses MediaPipe HandLandmarker, 
+a machine learning model that tracks hand
+movements in real time, running entirely in the browser. 
+The value is twofold: it makes AI tangible and
+physically experienceable, 
+while simply being fun to play.
